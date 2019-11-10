@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <cassert>
 
 struct DBRecordKey
 {
@@ -74,7 +75,6 @@ private:
 
     void rebuildIndices();
     void sortIndices(size_t first, size_t last);
-    inline size_t getRecordsCounter() { return counter; }
     bool insert(const DBRecord& rec, size_t address);
     void insertSorted(size_t index, DBRecord* rec);
     void removeSorted(size_t index);
@@ -88,14 +88,17 @@ public:
     ~Database();
     void Clear();
 
+    inline size_t GetCounter() { return counter; }
+    inline DBRecord* GetRecord(size_t index) { return sorted[index]; }
+
     // Direct address operations
     DBRecord* Select(size_t address);
-    size_t Append(const DBRecord& rec);
+    size_t Append(const char* name, const DBRecordData data);
     bool Delete(size_t address);
 
     // Access by key
     DBRecord* Select(const DBRecordKey& key);
-    DBRecord* SelectFirst(char* name);
+    DBRecord* SelectFirst(const char* name);
     DBRecord* SelectNext(const DBRecordKey& key);
     bool Delete(const DBRecordKey& key);
 };

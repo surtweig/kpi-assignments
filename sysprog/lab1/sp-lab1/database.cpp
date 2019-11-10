@@ -49,6 +49,7 @@ DBRecord::DBRecord(const char* name)
 {
     Clear();
     key.CopyName(name);
+    isValid = true;
 }
 
 DBRecord::DBRecord(const DBRecord& rec)
@@ -102,7 +103,7 @@ void Database::insertSorted(size_t index, DBRecord* rec)
 {
     DBRecord* prev = rec;
     DBRecord* swap;
-    for (size_t i = index; i < counter; i++)
+    for (size_t i = index; i < counter+1; i++)
     {
         swap = sorted[i];
         sorted[i] = prev;
@@ -128,7 +129,7 @@ size_t Database::findSortedIndex(const DBRecordKey& key, size_t first, size_t la
     if (last-first <= 1)
         return first;
 
-    size_t mid = (first+last)>>1;
+    size_t mid = (first+last)/2 + 1;
     if (key < sorted[mid]->key)
         return findSortedIndex(key, first, mid-1);
     else
@@ -177,7 +178,7 @@ void Database::sortIndices(size_t first, size_t last)
                 while (sorted[i]->key < pivot->key)
                     ++i;
                 while (pivot->key < sorted[j]->key)
-                    ++j;
+                    --j;
                 if (i >= j)
                     break;
                 DBRecord* t = sorted[i];
@@ -220,7 +221,7 @@ bool Database::insert(const DBRecord& rec, size_t address)
     return true;
 }
 
-size_t Database::Append(const DBRecord& rec)
+size_t Database::Append(const char* name, const DBRecordData data)
 {
     if (counter == MaxRecords)
         return InvalidAddress;
@@ -239,7 +240,7 @@ size_t Database::Append(const DBRecord& rec)
         return InvalidAddress;
     else
     {
-        DBRecord* collision = SelectFirst(rec.key.name);
+        DBRecord* collision = SelectFirst(name);
         unsigned char n = 0;
         while (collision != nullptr)
         {
@@ -251,13 +252,26 @@ size_t Database::Append(const DBRecord& rec)
                 return InvalidAddress;
         }
 
-        table[appendPos] = DBRecord(rec);
+        table[appendPos] = DBRecord(name);
         table[appendPos].key.nmod = n;
+        table[appendPos].data = data;
         table[appendPos].address = appendPos;
-        appendPos++;
+
+        if (counter > 0)
+        {
+            size_t insertSortedPos = findSortedIndex(table[appendPos].key, 0, counter-1);
+
+            if (table[appendPos].key < sorted[insertSortedPos]->key)
+                insertSorted(insertSortedPos, &table[appendPos]);
+            else
+                insertSorted(insertSortedPos+1, &table[appendPos]);
+        }
+        else
+            insertSorted(0, &table[appendPos]);
+
         counter++;
-        size_t insertSortedPos = findSortedIndex(table[appendPos].key, 0, counter-1);
-        insertSorted(insertSortedPos, &table[appendPos]);
+        appendPos++;
+        //rebuildIndices();
         return appendPos;
     }
 }
@@ -285,10 +299,10 @@ DBRecord* Database::Select(const DBRecordKey& key)
         return nullptr;
 }
 
-DBRecord* Database::SelectFirst(char* name)
+DBRecord* Database::SelectFirst(const char* name)
 {
     DBRecordKey key;
-    key.name = name;
+    key.CopyName(name);
     key.nmod = 0;
     return Select(key);
 }
@@ -304,5 +318,10 @@ DBRecord* Database::SelectNext(const DBRecordKey& key)
 
 bool Database::Delete(const DBRecordKey& key)
 {
-
+    size_t index = findSortedIndex(key, 0, counter-1);
+    if (index == InvalidAddress)
+        return false;
+    removeSorted(index);
+    sorted[index]->Clear();
+    return true;
 }
