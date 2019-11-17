@@ -59,7 +59,7 @@
             <enum>QAbstractItemView::SelectRows</enum>
            </property>
            <property name="columnCount">
-            <number>4</number>
+            <number>5</number>
            </property>
            <attribute name="horizontalHeaderVisible">
             <bool>true</bool>
@@ -76,6 +76,11 @@
            <column>
             <property name="text">
              <string>Name</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>#</string>
             </property>
            </column>
            <column>
@@ -130,10 +135,41 @@
              <number>1</number>
             </property>
             <item>
-             <widget class="QLineEdit" name="SearchRecordNameEdit">
-              <property name="placeholderText">
-               <string>Search...</string>
-              </property>
+             <widget class="QWidget" name="widget_3" native="true">
+              <layout class="QHBoxLayout" name="horizontalLayout_3">
+               <property name="leftMargin">
+                <number>0</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QLineEdit" name="SearchRecordNameEdit">
+                 <property name="placeholderText">
+                  <string>Search...</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="CancelSearchButton">
+                 <property name="maximumSize">
+                  <size>
+                   <width>30</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>x</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </widget>
             </item>
             <item>
@@ -144,7 +180,7 @@
               <property name="sizeHint" stdset="0">
                <size>
                 <width>20</width>
-                <height>170</height>
+                <height>208</height>
                </size>
               </property>
              </spacer>
@@ -209,13 +245,6 @@
              <widget class="QPushButton" name="AddRecordButton">
               <property name="text">
                <string>Add</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="UpdateRecordButton">
-              <property name="text">
-               <string>Update</string>
               </property>
              </widget>
             </item>

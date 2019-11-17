@@ -1,12 +1,17 @@
 #include "database.h"
 
-int CompareStr(char* s1, char* s2)
+int CompareStr(const char* s1, const char* s2)
 {
     int i = 0;
     while (true)
     {
         int c1 = toupper(s1[i]);
         int c2 = toupper(s2[i]);
+        if (c1 == c2)
+        {
+            c1 = s1[i];
+            c2 = s2[i];
+        }
         if (c1 != c2 || s1[i] == 0)
             return c1-c2;
         i++;
@@ -21,14 +26,35 @@ DBRecordKey::DBRecordKey()
 
 DBRecordKey::DBRecordKey(const DBRecordKey& key)
 {
+    name = nullptr;
     CopyName(key.name);
     nmod = key.nmod;
 }
 
+DBRecordKey::DBRecordKey(char* name)
+{
+    name = nullptr;
+    CopyName(name);
+    nmod = 0;
+}
+
+DBRecordKey::DBRecordKey(char* name, unsigned char nmod)
+{
+    name = nullptr;
+    CopyName(name);
+    this->nmod = nmod;
+}
+
 void DBRecordKey::CopyName(const char* source)
 {
-    name = (char*)malloc(strlen(source));
-    strcpy(name, source);
+    delete name;
+    if (source)
+    {
+        name = new char[strlen(source)];//(char*)malloc(strlen(source));
+        strcpy(name, source);
+    }
+    else
+        name = nullptr;
 }
 
 int DBRecordKey::Compare(const DBRecordKey& other) const
@@ -38,6 +64,21 @@ int DBRecordKey::Compare(const DBRecordKey& other) const
         return nmod - other.nmod;
     else
         return namecmp;
+}
+
+DBRecordKey::~DBRecordKey()
+{
+    delete name;
+}
+
+int DBRecordKey::CompareName(const DBRecordKey& other) const
+{
+    return CompareStr(name, other.name);
+}
+
+int DBRecordKey::CompareName(const char* otherName) const
+{
+    return CompareStr(name, otherName);
 }
 
 DBRecord::DBRecord()
@@ -62,6 +103,7 @@ DBRecord::DBRecord(const DBRecord& rec)
 
 void DBRecord::Clear()
 {
+    delete key.name;
     key.name = nullptr;
     key.nmod = 0;
     isValid = false;
@@ -70,15 +112,15 @@ void DBRecord::Clear()
 
 char* DBRecord::Name()
 {
-    char* name = (char*)malloc(strlen(key.name));
+    char* name = new char[strlen(key.name)];//(char*)malloc(strlen(key.name));
     strcpy(name, key.name);
     return name;
 }
 
 Database::Database()
 {
-    table = (DBRecord*)malloc(sizeof(DBRecord)*MaxRecords);
-    sorted = (DBRecord**)malloc(sizeof(DBRecord*)*MaxRecords);
+    table = new DBRecord[MaxRecords];//(DBRecord*)malloc(sizeof(DBRecord)*MaxRecords);
+    sorted = new DBRecord*[MaxRecords];//(DBRecord**)malloc(sizeof(DBRecord*)*MaxRecords);
     Clear();
 }
 
@@ -95,8 +137,8 @@ void Database::Clear()
 
 Database::~Database()
 {
-    delete table;
-    delete sorted;
+    delete[] table;
+    delete[] sorted;
 }
 
 void Database::insertSorted(size_t index, DBRecord* rec)
@@ -119,21 +161,60 @@ void Database::removeSorted(size_t index)
 
 size_t Database::findSortedIndex(const DBRecordKey& key, size_t first, size_t last)
 {
+    qDebug() << "findSortedIndex:" << key.name << "#" << key.nmod << "through" << first << "-" << last;
+    QString s = "   sorted["+QString::number(first)+":"+QString::number(last)+"] = ";
+    for (size_t i = first; i <= last; ++i)
+    {
+        s += QString::number(i);
+        s += ":";
+        s += sorted[i]->key.name;
+        s += "#";
+        s += QString::number(sorted[i]->key.nmod);
+        s += " ";
+    }
+    qDebug().noquote() << s;
+
     if (first > last || last >= counter)
+    {
+        qDebug() << "   InvalidAddress";
         return InvalidAddress;
+    }
 
     if (sorted[first]->key == key)
+    {
+        qDebug() << "   returning first index (" << first << ") exact match";
         return first;
+    }
+
     if (sorted[last]->key == key)
+    {
+        qDebug() << "   returning last index (" << last << ") exact match";
         return last;
-    if (last-first <= 1)
-        return first;
+    }
+
+    if (last-first <= 0)
+    {
+        if (key < sorted[last]->Key())
+        {
+            qDebug() << "   returning last(first) index (" << last << ") key < last";
+            return last;
+        }
+        if (sorted[first]->Key() < key)
+        {
+            qDebug() << "   returning first(last) index (" << first << ") first < key";
+            return first;
+        }
+    }
 
     size_t mid = (first+last)/2 + 1;
-    if (key < sorted[mid]->key)
-        return findSortedIndex(key, first, mid-1);
-    else
+    if (sorted[mid-1]->key < key)
+    {
         return findSortedIndex(key, mid, last);
+    }
+    else
+    {
+        return findSortedIndex(key, first, mid-1);
+    }
 }
 
 //           i               i+1
@@ -240,18 +321,20 @@ size_t Database::Append(const char* name, const DBRecordData data)
         return InvalidAddress;
     else
     {
-        DBRecord* collision = SelectFirst(name);
         unsigned char n = 0;
-        while (collision != nullptr)
+        if (counter > 0)
         {
-            if (collision->key.nmod != n)
-                break;
-            collision = SelectNext(collision->key);
-            n++;
-            if (n == 0 && collision == nullptr)
-                return InvalidAddress;
+            DBRecord* collision = SelectFirst(name);
+            while (collision != nullptr)
+            {
+                if (collision->key.nmod != n)
+                    break;
+                collision = SelectNext(collision->key);
+                n++;
+                if (n == 0 && collision == nullptr)
+                    return InvalidAddress;
+            }
         }
-
         table[appendPos] = DBRecord(name);
         table[appendPos].key.nmod = n;
         table[appendPos].data = data;
@@ -294,7 +377,12 @@ DBRecord* Database::Select(const DBRecordKey& key)
 {
     size_t index = findSortedIndex(key, 0, counter-1);
     if (index < counter)
-        return sorted[index];
+    {
+        if (key == sorted[index]->Key())
+            return sorted[index];
+        else
+            return nullptr;
+    }
     else
         return nullptr;
 }
@@ -304,13 +392,22 @@ DBRecord* Database::SelectFirst(const char* name)
     DBRecordKey key;
     key.CopyName(name);
     key.nmod = 0;
-    return Select(key);
+    size_t index = findSortedIndex(key, 0, counter-1);
+    if (index < counter)
+    {
+        if (key.CompareName(sorted[index]->Key()) == 0)
+            return sorted[index];
+        else
+            return nullptr;
+    }
+    else
+        return nullptr;
 }
 
 DBRecord* Database::SelectNext(const DBRecordKey& key)
 {
-    DBRecordKey keynext = DBRecordKey(key);
-    if (++keynext.nmod != 0)
+    DBRecordKey keynext = DBRecordKey(key.name, key.nmod+1);
+    if (keynext.nmod != 0)
         return Select(keynext);
     else
         return nullptr;
@@ -321,7 +418,13 @@ bool Database::Delete(const DBRecordKey& key)
     size_t index = findSortedIndex(key, 0, counter-1);
     if (index == InvalidAddress)
         return false;
-    removeSorted(index);
-    sorted[index]->Clear();
-    return true;
+    if (sorted[index]->Key() == key)
+    {
+        sorted[index]->Clear();
+        removeSorted(index);
+        --counter;
+        return true;
+    }
+    else
+        return false;
 }

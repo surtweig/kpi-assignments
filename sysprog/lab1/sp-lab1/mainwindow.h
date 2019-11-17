@@ -21,12 +21,18 @@ public:
 
     void centerAndResize();
     void refreshDbView();
+    void selectRecord(int listIndex);
 
 private slots:
     void on_AddRecordButton_clicked();
+    void on_DatabaseView_cellClicked(int row, int column);
+    void on_DeleteRecordButton_clicked();
+    void on_RecordNameEdit_editingFinished();
 
 private:
     Ui::MainWindow *ui;
     Database* db;
+    QList<DBRecord*> recordsViewList;
+    DBRecord* selectedRecord;
 };
 #endif // MAINWINDOW_H

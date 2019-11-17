@@ -6,6 +6,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <cassert>
+#include <QDebug>
 
 struct DBRecordKey
 {
@@ -14,9 +15,24 @@ struct DBRecordKey
 
     DBRecordKey();
     DBRecordKey(const DBRecordKey& key);
+    DBRecordKey(char* name);
+    DBRecordKey(char* name, unsigned char nmod);
+    ~DBRecordKey();
 
     void CopyName(const char* source);
     int Compare(const DBRecordKey& other) const;
+    int CompareName(const DBRecordKey& other) const;
+    int CompareName(const char* otherName) const;
+
+    DBRecordKey& operator=(const DBRecordKey& other)
+    {
+        if (&other == this)
+            return *this;
+        delete name;
+        CopyName(other.name);
+        nmod = other.nmod;
+        return *this;
+    }
 
     friend bool operator<(const DBRecordKey& L, const DBRecordKey& R)
     {
@@ -63,7 +79,7 @@ private:
     friend class Database;
 };
 
-int CompareStr(char* s1, char* s2);
+int CompareStr(const char* s1, const char* s2);
 
 class Database
 {
@@ -73,7 +89,6 @@ private:
     size_t counter;
     size_t appendPos;
 
-    void rebuildIndices();
     void sortIndices(size_t first, size_t last);
     bool insert(const DBRecord& rec, size_t address);
     void insertSorted(size_t index, DBRecord* rec);
@@ -87,6 +102,7 @@ public:
     Database();
     ~Database();
     void Clear();
+    void rebuildIndices();
 
     inline size_t GetCounter() { return counter; }
     inline DBRecord* GetRecord(size_t index) { return sorted[index]; }
