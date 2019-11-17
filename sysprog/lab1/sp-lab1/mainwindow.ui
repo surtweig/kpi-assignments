@@ -62,7 +62,7 @@
             <number>5</number>
            </property>
            <attribute name="horizontalHeaderVisible">
-            <bool>true</bool>
+            <bool>false</bool>
            </attribute>
            <attribute name="horizontalHeaderCascadingSectionResizes">
             <bool>false</bool>
@@ -256,6 +256,13 @@
              </widget>
             </item>
            </layout>
+           <zorder>widget_3</zorder>
+           <zorder>label</zorder>
+           <zorder>label_2</zorder>
+           <zorder>widget_2</zorder>
+           <zorder>AddRecordButton</zorder>
+           <zorder>DeleteRecordButton</zorder>
+           <zorder>RecordNameEdit</zorder>
           </widget>
          </widget>
         </item>

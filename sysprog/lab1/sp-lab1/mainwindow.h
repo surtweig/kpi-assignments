@@ -8,6 +8,8 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
+//template class Database<DBRecordData>;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -21,6 +23,7 @@ public:
 
     void centerAndResize();
     void refreshDbView();
+    void showDb();
     void selectRecord(int listIndex);
 
 private slots:
@@ -29,10 +32,16 @@ private slots:
     void on_DeleteRecordButton_clicked();
     void on_RecordNameEdit_editingFinished();
 
+    void on_RecordNameEdit_returnPressed();
+
+    void on_SearchRecordNameEdit_textChanged(const QString &arg1);
+
+    void on_CancelSearchButton_clicked();
+
 private:
     Ui::MainWindow *ui;
-    Database* db;
-    QList<DBRecord*> recordsViewList;
-    DBRecord* selectedRecord;
+    Database<DBRecordData>* db;
+    QList<DBRecord<DBRecordData>*> recordsViewList;
+    DBRecord<DBRecordData>* selectedRecord;
 };
 #endif // MAINWINDOW_H

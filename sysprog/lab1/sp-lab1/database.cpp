@@ -14,8 +14,22 @@ int CompareStr(const char* s1, const char* s2)
         }
         if (c1 != c2 || s1[i] == 0)
             return c1-c2;
-        i++;
+        ++i;
     }
+}
+
+int SimilarityStr(const char* s1, const char* s2)
+{
+    int i = 0;
+    while (true)
+    {
+        int c1 = toupper(s1[i]);
+        int c2 = toupper(s2[i]);
+        if (c1 != c2 || s1[i] == 0)
+            break;
+        ++i;
+    }
+    return i;
 }
 
 DBRecordKey::DBRecordKey()
@@ -31,16 +45,16 @@ DBRecordKey::DBRecordKey(const DBRecordKey& key)
     nmod = key.nmod;
 }
 
-DBRecordKey::DBRecordKey(char* name)
+DBRecordKey::DBRecordKey(const char* name)
 {
-    name = nullptr;
+    this->name = nullptr;
     CopyName(name);
     nmod = 0;
 }
 
-DBRecordKey::DBRecordKey(char* name, unsigned char nmod)
+DBRecordKey::DBRecordKey(const char* name, unsigned char nmod)
 {
-    name = nullptr;
+    this->name = nullptr;
     CopyName(name);
     this->nmod = nmod;
 }
@@ -81,19 +95,22 @@ int DBRecordKey::CompareName(const char* otherName) const
     return CompareStr(name, otherName);
 }
 
-DBRecord::DBRecord()
+template <typename TDBRecordData>
+DBRecord<TDBRecordData>::DBRecord()
 {
     Clear();
 }
 
-DBRecord::DBRecord(const char* name)
+template <typename TDBRecordData>
+DBRecord<TDBRecordData>::DBRecord(const char* name)
 {
     Clear();
     key.CopyName(name);
     isValid = true;
 }
 
-DBRecord::DBRecord(const DBRecord& rec)
+template <typename TDBRecordData>
+DBRecord<TDBRecordData>::DBRecord(const DBRecord<TDBRecordData>& rec)
 {
     Clear();
     key.CopyName(rec.key.name);
@@ -101,30 +118,35 @@ DBRecord::DBRecord(const DBRecord& rec)
     isValid = true;
 }
 
-void DBRecord::Clear()
+template <typename TDBRecordData>
+void DBRecord<TDBRecordData>::Clear()
 {
     delete key.name;
     key.name = nullptr;
     key.nmod = 0;
     isValid = false;
-    address = Database::InvalidAddress;
+    address = Database<TDBRecordData>::InvalidAddress;
+    sortedIndex = Database<TDBRecordData>::InvalidAddress;
 }
 
-char* DBRecord::Name()
+template <typename TDBRecordData>
+char* DBRecord<TDBRecordData>::Name() const
 {
     char* name = new char[strlen(key.name)];//(char*)malloc(strlen(key.name));
     strcpy(name, key.name);
     return name;
 }
 
-Database::Database()
+template <typename TDBRecordData>
+Database<TDBRecordData>::Database()
 {
-    table = new DBRecord[MaxRecords];//(DBRecord*)malloc(sizeof(DBRecord)*MaxRecords);
-    sorted = new DBRecord*[MaxRecords];//(DBRecord**)malloc(sizeof(DBRecord*)*MaxRecords);
+    table = new DBRecord<TDBRecordData>[MaxRecords];//(DBRecord*)malloc(sizeof(DBRecord)*MaxRecords);
+    sorted = new DBRecord<TDBRecordData>*[MaxRecords];//(DBRecord**)malloc(sizeof(DBRecord*)*MaxRecords);
     Clear();
 }
 
-void Database::Clear()
+template <typename TDBRecordData>
+void Database<TDBRecordData>::Clear()
 {
     for (size_t i = 0; i < MaxRecords; i++)
     {
@@ -135,31 +157,40 @@ void Database::Clear()
     appendPos = 0;
 }
 
-Database::~Database()
+template <typename TDBRecordData>
+Database<TDBRecordData>::~Database()
 {
     delete[] table;
     delete[] sorted;
 }
 
-void Database::insertSorted(size_t index, DBRecord* rec)
+template <typename TDBRecordData>
+void Database<TDBRecordData>::insertSorted(size_t index, DBRecord<TDBRecordData>* rec)
 {
-    DBRecord* prev = rec;
-    DBRecord* swap;
+    DBRecord<TDBRecordData>* prev = rec;
+    DBRecord<TDBRecordData>* swap;
     for (size_t i = index; i < counter+1; i++)
     {
         swap = sorted[i];
         sorted[i] = prev;
+        sorted[i]->sortedIndex = i;
         prev = swap;
     }
 }
 
-void Database::removeSorted(size_t index)
+template <typename TDBRecordData>
+void Database<TDBRecordData>::removeSorted(size_t index)
 {
     for (size_t i = index; i < counter; i++)
+    {
         sorted[i] = sorted[i+1];
+        if (sorted[i])
+            sorted[i]->sortedIndex = i;
+    }
 }
 
-size_t Database::findSortedIndex(const DBRecordKey& key, size_t first, size_t last)
+template <typename TDBRecordData>
+size_t Database<TDBRecordData>::findSortedIndex(const DBRecordKey& key, size_t first, size_t last)
 {
     qDebug() << "findSortedIndex:" << key.name << "#" << key.nmod << "through" << first << "-" << last;
     QString s = "   sorted["+QString::number(first)+":"+QString::number(last)+"] = ";
@@ -222,7 +253,8 @@ size_t Database::findSortedIndex(const DBRecordKey& key, size_t first, size_t la
 //
 //           mid = (i+i+1)>>1 = i
 
-void Database::rebuildIndices()
+template <typename TDBRecordData>
+void Database<TDBRecordData>::rebuildIndices()
 {
     counter = 0;
     for (size_t i = 0; i < MaxRecords; i++)
@@ -235,7 +267,8 @@ void Database::rebuildIndices()
     sortIndices(0, counter-1);
 }
 
-void Database::sortIndices(size_t first, size_t last)
+template <typename TDBRecordData>
+void Database<TDBRecordData>::sortIndices(size_t first, size_t last)
 {
     if (first < last)
     {
@@ -244,14 +277,16 @@ void Database::sortIndices(size_t first, size_t last)
         {
             if (sorted[last]->key < sorted[first]->key)
             {
-                DBRecord* t = sorted[last];
+                DBRecord<TDBRecordData>* t = sorted[last];
                 sorted[last] = sorted[first];
+                sorted[last]->sortedIndex = last;
                 sorted[first] = t;
+                sorted[first]->sortedIndex = first;
             }
         }
         else
         {
-            DBRecord* pivot = sorted[first + (last-first)/2];
+            DBRecord<TDBRecordData>* pivot = sorted[first + (last-first)/2];
             size_t i = first;
             size_t j = last;
             while (true)
@@ -262,9 +297,11 @@ void Database::sortIndices(size_t first, size_t last)
                     --j;
                 if (i >= j)
                     break;
-                DBRecord* t = sorted[i];
+                DBRecord<TDBRecordData>* t = sorted[i];
                 sorted[i] = sorted[j];
+                sorted[i]->sortedIndex = i;
                 sorted[j] = t;
+                sorted[j]->sortedIndex = j;
             }
 
             sortIndices(first, j);
@@ -273,22 +310,24 @@ void Database::sortIndices(size_t first, size_t last)
     }
 }
 
-DBRecord* Database::Select(size_t address)
+template <typename TDBRecordData>
+DBRecord<TDBRecordData>* Database<TDBRecordData>::Select(size_t address)
 {
     if (address >= MaxRecords)
         return nullptr;
     return &table[address];
 }
 
-bool Database::insert(const DBRecord& rec, size_t address)
+template <typename TDBRecordData>
+bool Database<TDBRecordData>::insert(const DBRecord<TDBRecordData>& rec, size_t address)
 {
     if (address >= MaxRecords)
         return false;
     if (counter == MaxRecords)
         return false;
     size_t pos = address;
-    DBRecord prev = rec;
-    DBRecord swap;
+    DBRecord<TDBRecordData> prev = rec;
+    DBRecord<TDBRecordData> swap;
     while (table[pos].IsValid())
     {
         swap = table[pos];
@@ -302,7 +341,8 @@ bool Database::insert(const DBRecord& rec, size_t address)
     return true;
 }
 
-size_t Database::Append(const char* name, const DBRecordData data)
+template <typename TDBRecordData>
+size_t Database<TDBRecordData>::Append(const char* name, const TDBRecordData data)
 {
     if (counter == MaxRecords)
         return InvalidAddress;
@@ -324,7 +364,7 @@ size_t Database::Append(const char* name, const DBRecordData data)
         unsigned char n = 0;
         if (counter > 0)
         {
-            DBRecord* collision = SelectFirst(name);
+            DBRecord<TDBRecordData>* collision = SelectFirst(name);
             while (collision != nullptr)
             {
                 if (collision->key.nmod != n)
@@ -335,7 +375,7 @@ size_t Database::Append(const char* name, const DBRecordData data)
                     return InvalidAddress;
             }
         }
-        table[appendPos] = DBRecord(name);
+        table[appendPos] = DBRecord<TDBRecordData>(name);
         table[appendPos].key.nmod = n;
         table[appendPos].data = data;
         table[appendPos].address = appendPos;
@@ -355,11 +395,12 @@ size_t Database::Append(const char* name, const DBRecordData data)
         counter++;
         appendPos++;
         //rebuildIndices();
-        return appendPos;
+        return appendPos-1;
     }
 }
 
-bool Database::Delete(size_t address)
+template <typename TDBRecordData>
+bool Database<TDBRecordData>::Delete(size_t address)
 {
     if (address >= MaxRecords)
         return false;
@@ -373,7 +414,8 @@ bool Database::Delete(size_t address)
     return wasValid;
 }
 
-DBRecord* Database::Select(const DBRecordKey& key)
+template <typename TDBRecordData>
+DBRecord<TDBRecordData>* Database<TDBRecordData>::Select(const DBRecordKey& key)
 {
     size_t index = findSortedIndex(key, 0, counter-1);
     if (index < counter)
@@ -387,7 +429,8 @@ DBRecord* Database::Select(const DBRecordKey& key)
         return nullptr;
 }
 
-DBRecord* Database::SelectFirst(const char* name)
+template <typename TDBRecordData>
+DBRecord<TDBRecordData>* Database<TDBRecordData>::SelectFirst(const char* name)
 {
     DBRecordKey key;
     key.CopyName(name);
@@ -404,7 +447,8 @@ DBRecord* Database::SelectFirst(const char* name)
         return nullptr;
 }
 
-DBRecord* Database::SelectNext(const DBRecordKey& key)
+template <typename TDBRecordData>
+DBRecord<TDBRecordData>* Database<TDBRecordData>::SelectNext(const DBRecordKey& key)
 {
     DBRecordKey keynext = DBRecordKey(key.name, key.nmod+1);
     if (keynext.nmod != 0)
@@ -413,7 +457,8 @@ DBRecord* Database::SelectNext(const DBRecordKey& key)
         return nullptr;
 }
 
-bool Database::Delete(const DBRecordKey& key)
+template <typename TDBRecordData>
+bool Database<TDBRecordData>::Delete(const DBRecordKey& key)
 {
     size_t index = findSortedIndex(key, 0, counter-1);
     if (index == InvalidAddress)
@@ -427,4 +472,50 @@ bool Database::Delete(const DBRecordKey& key)
     }
     else
         return false;
+}
+
+template <typename TDBRecordData>
+DBRecord<TDBRecordData>* Database<TDBRecordData>::Search(const char* name)
+{
+    DBRecordKey key(name);
+    size_t index = findSortedIndex(key, 0, counter-1);
+    if (index == InvalidAddress)
+        return nullptr;
+    if (SimilarityStr(sorted[index]->Key().name, name) > 0)
+    {
+        return sorted[index];
+    }
+    else
+    {
+        --index;
+        if (index == InvalidAddress)
+            return nullptr;
+        if (SimilarityStr(sorted[index]->Key().name, name) > 0)
+        {
+            return sorted[index];
+        }
+        else
+            return nullptr;
+    }
+}
+
+template <typename TDBRecordData>
+DBRecord<TDBRecordData>* Database<TDBRecordData>::SearchNext(const DBRecord<TDBRecordData>* rec, int step)
+{
+    if (rec == nullptr)
+        return nullptr;
+
+    size_t nextIndex = rec->sortedIndex+step;
+    if (nextIndex >= counter)
+        return nullptr;
+
+    if (sorted[nextIndex] == nullptr)
+        return nullptr;
+
+    if (SimilarityStr(sorted[nextIndex]->Key().name, rec->Key().name) > 0)
+    {
+        return sorted[nextIndex];
+    }
+    else
+        return nullptr;
 }

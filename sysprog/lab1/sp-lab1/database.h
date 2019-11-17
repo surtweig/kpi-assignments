@@ -8,6 +8,10 @@
 #include <cassert>
 #include <QDebug>
 
+
+int CompareStr(const char* s1, const char* s2);
+int SimilarityStr(const char* s1, const char* s2);
+
 struct DBRecordKey
 {
     char* name;
@@ -15,8 +19,8 @@ struct DBRecordKey
 
     DBRecordKey();
     DBRecordKey(const DBRecordKey& key);
-    DBRecordKey(char* name);
-    DBRecordKey(char* name, unsigned char nmod);
+    DBRecordKey(const char* name);
+    DBRecordKey(const char* name, unsigned char nmod);
     ~DBRecordKey();
 
     void CopyName(const char* source);
@@ -56,42 +60,45 @@ union DBRecordData
     } coordinates;
 };
 
+template <typename TDBRecordData> class Database;
+
+template <typename TDBRecordData>
 struct DBRecord
 {
 public:
-    DBRecordData data;
+    TDBRecordData data;
 
     DBRecord();
     DBRecord(const char* name);
     DBRecord(const DBRecord& rec);
     void Clear();
 
-    inline DBRecordKey Key() { return DBRecordKey(key); }
-    char* Name();
-    inline int Nmod() { return key.nmod; }
-    inline bool IsValid() { return isValid; }
-    inline size_t Address() { return address; }
+    inline DBRecordKey Key() const { return DBRecordKey(key); }
+    char* Name() const;
+    inline int Nmod() const { return key.nmod; }
+    inline bool IsValid() const { return isValid; }
+    inline size_t Address() const { return address; }
 private:
     DBRecordKey key;
     bool isValid;
     size_t address;
+    size_t sortedIndex;
 
-    friend class Database;
+    friend class Database<TDBRecordData>;
 };
 
-int CompareStr(const char* s1, const char* s2);
-
+template <typename TDBRecordData>
 class Database
 {
 private:
-    DBRecord* table;
-    DBRecord** sorted;
+    DBRecord<TDBRecordData>* table;
+    DBRecord<TDBRecordData>** sorted;
     size_t counter;
     size_t appendPos;
 
     void sortIndices(size_t first, size_t last);
-    bool insert(const DBRecord& rec, size_t address);
-    void insertSorted(size_t index, DBRecord* rec);
+    bool insert(const DBRecord<TDBRecordData>& rec, size_t address);
+    void insertSorted(size_t index, DBRecord<TDBRecordData>* rec);
     void removeSorted(size_t index);
     size_t findSortedIndex(const DBRecordKey& key, size_t first, size_t last);
 
@@ -105,18 +112,25 @@ public:
     void rebuildIndices();
 
     inline size_t GetCounter() { return counter; }
-    inline DBRecord* GetRecord(size_t index) { return sorted[index]; }
+    inline DBRecord<TDBRecordData>* GetRecord(size_t index) { return sorted[index]; }
 
     // Direct address operations
-    DBRecord* Select(size_t address);
-    size_t Append(const char* name, const DBRecordData data);
+    size_t Append(const char* name, const TDBRecordData data);
+    DBRecord<TDBRecordData>* Select(size_t address);
     bool Delete(size_t address);
 
     // Access by key
-    DBRecord* Select(const DBRecordKey& key);
-    DBRecord* SelectFirst(const char* name);
-    DBRecord* SelectNext(const DBRecordKey& key);
+    DBRecord<TDBRecordData>* Select(const DBRecordKey& key);
+    DBRecord<TDBRecordData>* SelectFirst(const char* name);
+    DBRecord<TDBRecordData>* SelectNext(const DBRecordKey& key);
     bool Delete(const DBRecordKey& key);
+
+    // Search similar name
+    DBRecord<TDBRecordData>* Search(const char* name);
+    DBRecord<TDBRecordData>* SearchNext(const DBRecord<TDBRecordData>* rec, int step = 1);
 };
+
+template class Database<DBRecordData>;
+template struct DBRecord<DBRecordData>;
 
 #endif // DATABASE_H

@@ -9,7 +9,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     centerAndResize();
     init();
-    refreshDbView();
+    showDb();
 }
 
 MainWindow::~MainWindow()
@@ -20,7 +20,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::init()
 {
-    db = new Database();
+    db = new Database<DBRecordData>();
 
     /*db->Append("foo", DBRecordData({0.2, 0.4, 0.6}));
     db->Append("Zzz", DBRecordData({9, 5, 3.14}));
@@ -31,14 +31,13 @@ void MainWindow::init()
     db->Append("bar", DBRecordData({2.5, 3.9, 4.1}));
     db->Append("qwerty", DBRecordData({2.5, 3.9, 4.1}));*/
 
-
     db->Append("Foo", DBRecordData({0.2, 0.4, 0.6}));
-        //db->Append("Zzz1", DBRecordData({9, 5, 3.14}));
-        //db->Append("Zzz2", DBRecordData({9, 5, 3.14}));
-        db->Append("bar", DBRecordData({0.5, 0.9, 0.1}));
-        db->Append("Zzz", DBRecordData({91, 5, 3.14}));
+    //db->Append("Zzz1", DBRecordData({9, 5, 3.14}));
+    //db->Append("Zzz2", DBRecordData({9, 5, 3.14}));
+    db->Append("bar", DBRecordData({0.5, 0.9, 0.1}));
+    db->Append("Zzz", DBRecordData({91, 5, 3.14}));
     //db->rebuildIndices();
-    recordsViewList = QList<DBRecord*>();
+    recordsViewList = QList<DBRecord<DBRecordData>*>();
     selectedRecord = nullptr;
 }
 
@@ -47,9 +46,19 @@ void MainWindow::deinit()
     delete db;
 }
 
+void MainWindow::showDb()
+{
+    recordsViewList.clear();
+    for (size_t i = 0; i < db->GetCounter(); ++i)
+    {
+        DBRecord<DBRecordData>* rec = db->GetRecord(i);
+        recordsViewList.append(rec);
+    }
+    refreshDbView();
+}
+
 void MainWindow::refreshDbView()
 {
-   recordsViewList.clear();
    ui->DatabaseView->clearContents();
    ui->DatabaseView->setColumnWidth(0, 300);
    ui->DatabaseView->setColumnWidth(1, 30);
@@ -58,10 +67,10 @@ void MainWindow::refreshDbView()
    ui->DatabaseView->horizontalHeaderItem(2)->setTextAlignment(Qt::AlignLeft);
    ui->DatabaseView->horizontalHeaderItem(3)->setTextAlignment(Qt::AlignLeft);
    ui->DatabaseView->horizontalHeaderItem(4)->setTextAlignment(Qt::AlignLeft);
-   ui->DatabaseView->setRowCount(db->GetCounter());
-   for (size_t i = 0; i < db->GetCounter(); ++i)
+   ui->DatabaseView->setRowCount(recordsViewList.count());
+   for (int i = 0; i < recordsViewList.count(); ++i)
    {
-       DBRecord* rec = db->GetRecord(i);
+       DBRecord<DBRecordData>* rec = recordsViewList[i];
 
        ui->DatabaseView->setItem(int(i), 0, new QTableWidgetItem(rec->Name()));
        if (rec->Nmod() > 0)
@@ -70,7 +79,6 @@ void MainWindow::refreshDbView()
        ui->DatabaseView->setItem(int(i), 3, new QTableWidgetItem(QString::number(rec->data.vector[1])));
        ui->DatabaseView->setItem(int(i), 4, new QTableWidgetItem(QString::number(rec->data.vector[2])));
 
-       recordsViewList.append(rec);
    }
 }
 
@@ -78,7 +86,7 @@ void MainWindow::selectRecord(int listIndex)
 {
     if (listIndex >= 0 && listIndex < recordsViewList.count())
     {
-        DBRecord* rec = recordsViewList[listIndex];
+        DBRecord<DBRecordData>* rec = recordsViewList[listIndex];
         selectedRecord = rec;
         ui->RecordNameEdit->setText(rec->Name());
         ui->RecordXEdit->setText(QString::number(rec->data.vector[0]));
@@ -95,13 +103,13 @@ void MainWindow::selectRecord(int listIndex)
     }
 }
 
-void MainWindow::centerAndResize() {
-    // get the dimension available on this screen
+void MainWindow::centerAndResize()
+{
     QSize availableSize = qApp->desktop()->availableGeometry().size();
     int width = availableSize.width();
     int height = availableSize.height();
-    width *= 0.7; // 90% of the screen size
-    height *= 0.8; // 90% of the screen size
+    width *= 0.7;
+    height *= 0.8;
     QSize newSize( width, height );
 
     setGeometry(
@@ -116,8 +124,12 @@ void MainWindow::centerAndResize() {
 
 void MainWindow::on_AddRecordButton_clicked()
 {
-    db->Append(ui->RecordNameEdit->text().toLocal8Bit().data(), DBRecordData({0.2, 0.4, 0.6}));
-    refreshDbView();
+    db->Append(
+        ui->RecordNameEdit->text().toLocal8Bit().data(),
+        DBRecordData({ui->RecordXEdit->text().toFloat(),
+                      ui->RecordYEdit->text().toFloat(),
+                      ui->RecordZEdit->text().toFloat()}));
+    showDb();
 }
 
 void MainWindow::on_DatabaseView_cellClicked(int row, int column)
@@ -130,7 +142,7 @@ void MainWindow::on_DeleteRecordButton_clicked()
     if (selectedRecord)
     {
         db->Delete(selectedRecord->Key());
-        refreshDbView();
+        showDb();
         selectRecord(-1);
     }
 }
@@ -138,12 +150,51 @@ void MainWindow::on_DeleteRecordButton_clicked()
 void MainWindow::on_RecordNameEdit_editingFinished()
 {
 
-    char* newName = ui->RecordNameEdit->text().toLocal8Bit().data();
+}
+
+void MainWindow::on_RecordNameEdit_returnPressed()
+{
     if (selectedRecord)
     {
-        if (selectedRecord->Key().CompareName(newName))
-        DBRecordData data = selectedRecord->data;
-
+        DBRecordKey selectedKey = selectedRecord->Key();
+        if (selectedKey.CompareName(ui->RecordNameEdit->text().toLocal8Bit().constData()) != 0)
+        {
+            DBRecordData data = selectedRecord->data;
+            db->Delete(selectedKey);
+            size_t newIndex = db->Append(ui->RecordNameEdit->text().toLocal8Bit().constData(), data);
+            //selectRecord(-1);
+            refreshDbView();
+            selectedRecord = db->Select(newIndex);
+        }
     }
+}
 
+void MainWindow::on_SearchRecordNameEdit_textChanged(const QString &arg1)
+{
+    if (ui->SearchRecordNameEdit->text().count() == 0)
+        showDb();
+    else
+    {
+        DBRecord<DBRecordData>* rec = db->Search(ui->SearchRecordNameEdit->text().toLocal8Bit().constData());
+        DBRecord<DBRecordData>* recprev = rec;
+        DBRecord<DBRecordData>* recnext = rec;
+        recordsViewList.clear();
+        if (rec)
+            recordsViewList.append(rec);
+        while (recprev != nullptr || recnext != nullptr)
+        {
+            recprev = db->SearchNext(recprev, -1);
+            recnext = db->SearchNext(recnext, 1);
+            if (recprev)
+                recordsViewList.prepend(recprev);
+            if (recnext)
+                recordsViewList.append(recnext);
+        }
+        refreshDbView();
+    }
+}
+
+void MainWindow::on_CancelSearchButton_clicked()
+{
+    ui->SearchRecordNameEdit->setText("");
 }
