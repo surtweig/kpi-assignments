@@ -1,6 +1,6 @@
 #include "FiniteStateAutomaton.h"
 
-FiniteStateAutomaton::FiniteStateAutomaton()
-{
 
-}
+
+//template class FiniteStateAutomaton<int, int>;
+//template class FiniteStateAutomaton<int, char>;
