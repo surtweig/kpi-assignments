@@ -27,19 +27,13 @@ public:
     /// \brief FSALexer Finite state automaton based lexer
     /// \param reservedWords Identifiers with designated token ids
     /// \param operators Special characters operators (arithmetic, logic, etc.)
-    /// \param delimiters Delimiting operators (braces, commas, etc.)
-    /// \param nullTokenId Empty token
-    /// \param invalidTokenId Invalid token used for error signalling
-    /// \param stringTokenId String constant token
-    /// \param numberTokenId Number constant token
+    /// \param delimiters Delimiting characters (braces, commas, etc.)
     /// \param commentLineDelimiter
     /// \param commentBlockStart
     /// \param commentBlockFinish
     ///
     FSALexer(map<string, TTokenId> reservedWords, map<string, TTokenId> operators, map<string, TTokenId> delimiters,
-             //TTokenId nullTokenId, TTokenId invalidTokenId,
-             //TTokenId identifierTokenId, TTokenId stringTokenId, TTokenId numberTokenId,
-             string commentLineDelimiter, string commentBlockStart, string commentBlockFinish);
+             char stringDelimiter, string commentLineDelimiter, string commentBlockStart, string commentBlockFinish);
 
     ///
     /// \brief Tokenize Produces a sequence of tokens from current input position to the end
@@ -53,6 +47,12 @@ public:
     /// \brief GetToken returns token's string representation (if present)
     ///
     string GetToken(TTokenId tid);
+
+    inline TTokenId NullToken() { return nullTk; }
+    inline TTokenId InvalidToken() { return invalidTk; }
+    inline TTokenId IdentifierToken() { return identifierTk; }
+    inline TTokenId StringLiteralToken() { return stringTk; }
+    inline TTokenId NumberLiteralToken() { return numberTk; }
 
 private:
     FiniteStateAutomaton<TTokenIdSuperset, char>* fsa;
@@ -70,7 +70,7 @@ private:
     /// \brief readTokenStr reads a string from input between start and finish positions (inclusively)
     /// then returns the stream to original position
     ///
-    string readTokenStr(istream& input, uint32_t start, uint32_t finish = 0);
+    string readTokenStr(istream& input, uint32_t start, uint32_t finish);
 
     ///
     /// \brief getMaxToken returns greatest TokenId from given tokens
@@ -87,9 +87,7 @@ private:
 
 template <typename TTokenId>
 FSALexer<TTokenId>::FSALexer(map<string, TTokenId> reservedWords, map<string, TTokenId> operators, map<string, TTokenId> delimiters,
-                             //TTokenId nullTokenId, TTokenId invalidTokenId,
-                             //TTokenId identifierTokenId, TTokenId stringTokenId, TTokenId numberTokenId,
-                             string commentLineDelimiter, string commentBlockStart, string commentBlockFinish) :
+                             char stringDelimiter, string commentLineDelimiter, string commentBlockStart, string commentBlockFinish) :
     tokens(reservedWords),
     commentLine(commentLineDelimiter),
     commentStart(commentBlockStart),
@@ -101,21 +99,51 @@ FSALexer<TTokenId>::FSALexer(map<string, TTokenId> reservedWords, map<string, TT
     TTokenIdSuperset maxTokenId = getMaxToken();
     TTokenIdSuperset stateIndexer = maxTokenId+1;
 
-    nullTk = ++stateIndexer;
-    invalidTk = ++stateIndexer;
+    nullTk = TTokenId(++stateIndexer);
+    invalidTk = TTokenId(++stateIndexer);
 
     fsa = new FiniteStateAutomaton<TTokenIdSuperset, char>(nullTk, invalidTk);
 
-    identifierTk = ++stateIndexer;
-    numberTk = ++stateIndexer;
-    stringTk = ++stateIndexer;
+    identifierTk = TTokenId(++stateIndexer);
+    numberTk = TTokenId(++stateIndexer);
+    stringTk = TTokenId(++stateIndexer);
 
     vector<char> whitespace({' ', '\t', '\n', '\r'});
+    vector<char> delimitersChars;
+    vector<char> operatorsFirstChars;
+    vector<char> identifierChars({stringDelimiter, '_'});
+    for (char c = 'a'; c <= 'z'; ++c)
+        identifierChars.push_back(c);
+    for (char c = 'A'; c <= 'Z'; ++c)
+        identifierChars.push_back(c);
+    for (char c = '0'; c <= '9'; ++c)
+        identifierChars.push_back(c);
 
+    // Adding single-char delimiter tokens
     for (auto i = delimiters.begin(); i != delimiters.end(); ++i)
+    {
+        char delimChar = i->first[0];
+        fsa->AddTransition(nullTk, delimChar, i->second);
+        delimitersChars.push_back(delimChar);
+    }
+
+    // Adding operator tokens
+    for (auto i = operators.begin(); i != operators.end(); ++i)
     {
         TTokenIdSuperset lastCharState = fsaAddString(i->first, stateIndexer);
         fsa->AddTransition(lastCharState, whitespace, i->second);
+        fsa->AddTransition(lastCharState, delimitersChars, i->second);
+        fsa->AddTransition(lastCharState, identifierChars, i->second);
+        operatorsFirstChars.push_back(i->first[0]);
+    }
+
+    // Adding reserved words tokens
+    for (auto i = reservedWords.begin(); i != reservedWords.end(); ++i)
+    {
+        TTokenIdSuperset lastCharState = fsaAddString(i->first, stateIndexer);
+        fsa->AddTransition(lastCharState, whitespace, i->second);
+        fsa->AddTransition(lastCharState, delimitersChars, i->second);
+        fsa->AddTransition(lastCharState, operatorsFirstChars, i->second);
     }
 }
 
@@ -155,14 +183,11 @@ string FSALexer<TTokenId>::readTokenStr(istream& input, uint32_t start, uint32_t
     // storing current stream position
     istream::pos_type pos = input.tellg();
 
-    if (finish == 0)
-        finish = pos;
-
     // returning to beginning of the token
     input.seekg(start);
 
     // reading current token's characters from the stream
-    uint32_t tksize = uint32_t(finish-start);
+    uint32_t tksize = uint32_t(finish-start+1);
     string tkstr(tksize, ' ');
     input.read(&tkstr[0], tksize);
 
@@ -180,8 +205,6 @@ bool FSALexer<TTokenId>::Tokenize(istream& input, vector< pair<TTokenId, string>
     {
         fsa->Set(nullTk);
         istream::pos_type currentStart = 0;
-        //if (currentStart == istream::pos_type(-1))
-        //    return false;
 
         while (input.peek() != char_traits<char>::eof())
         {
@@ -201,9 +224,17 @@ bool FSALexer<TTokenId>::Tokenize(istream& input, vector< pair<TTokenId, string>
             if (tokens.find(fsaState) != tokens.end())
             {
                 TTokenId nextTk = TTokenId(fsaState);
-                //istream::pos_type nextStart = input.tellg();
                 output.push_back(pair<TTokenId, string>(nextTk, readTokenStr(input, currentStart, currentStreamPos)));
-                input.seekg(currentStreamPos);
+
+                // Any token of more than one char is stopped by the beginning
+                // of another token, so after reading a token, input stream needs
+                // to be returned to the first char of the next one. However,
+                // as an exception from that rule, single-char tokens
+                // such as delimiters are stopped by themselves and the first
+                // char of the next token will not be consumed.
+                if (currentStreamPos != currentStart)
+                    input.seekg(currentStreamPos);
+
                 fsa->Set(nullTk);
                 currentStart = 0;
             }
