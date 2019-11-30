@@ -15,6 +15,7 @@ public:
     void Set(TState state);
     void AddTransition(TState sourceState, TSignal signal, TState destState);
     void AddTransition(TState sourceState, map<TSignal, TState> destinations);
+    TState GetTransition(TState sourceState, TSignal signal);
 
 private:
     TState state;
@@ -63,5 +64,16 @@ void FiniteStateAutomaton<TState, TSignal>::AddTransition(TState sourceState, ma
         pair<TSignal, TState> ss(i->first, sourceState);
         transition[ss] = i->second;
     }
+}
+
+template <typename TState, typename TSignal>
+TState FiniteStateAutomaton<TState, TSignal>::GetTransition(TState sourceState, TSignal signal)
+{
+    pair<TSignal, TState> ss(signal, sourceState);
+    auto i = transition.find(ss);
+    if (i != transition.end())
+        return i->second;
+    else
+        return invalidState;
 }
 #endif // FINITESTATEAUTOMATON_H
