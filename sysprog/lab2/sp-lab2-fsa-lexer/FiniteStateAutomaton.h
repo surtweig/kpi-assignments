@@ -2,6 +2,7 @@
 #define FINITESTATEAUTOMATON_H
 
 #include <map>
+#include <vector>
 using namespace std;
 
 template <typename TState, typename TSignal>
@@ -15,6 +16,7 @@ public:
     void Set(TState state);
     void AddTransition(TState sourceState, TSignal signal, TState destState);
     void AddTransition(TState sourceState, map<TSignal, TState> destinations);
+    void AddTransition(TState sourceState, vector<TSignal> signalList, TState destState);
     TState GetTransition(TState sourceState, TSignal signal);
 
 private:
@@ -63,6 +65,16 @@ void FiniteStateAutomaton<TState, TSignal>::AddTransition(TState sourceState, ma
     {
         pair<TSignal, TState> ss(i->first, sourceState);
         transition[ss] = i->second;
+    }
+}
+
+template <typename TState, typename TSignal>
+void FiniteStateAutomaton<TState, TSignal>::AddTransition(TState sourceState, vector<TSignal> signalList, TState destState)
+{
+    for (auto i = signalList.begin(); i != signalList.end(); ++i)
+    {
+        pair<TSignal, TState> ss(*i, sourceState);
+        transition[ss] = destState;
     }
 }
 
