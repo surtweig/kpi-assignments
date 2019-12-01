@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QDebug>
 #include "FiniteStateAutomaton.h"
 #include "FSALexer.h"
 
@@ -22,7 +23,7 @@ enum PascalTokens
     _parenthesisOpen, _parenthesisClose, _comma, _semicolon, _period,
     _squareOpen, _squareClose,
 
-    _notEquals, _equals, _lower, _lowerEq, _greater, _greaterEq,
+    _assign, _notEquals, _equals, _lower, _lowerEq, _greater, _greaterEq,
     _plus, _minus, _multiply, _divide, _caret
 };
 

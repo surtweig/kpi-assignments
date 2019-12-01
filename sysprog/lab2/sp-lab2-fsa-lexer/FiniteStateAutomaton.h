@@ -1,6 +1,8 @@
 #ifndef FINITESTATEAUTOMATON_H
 #define FINITESTATEAUTOMATON_H
 
+#include <QDebug>
+
 #include <map>
 #include <vector>
 using namespace std;
@@ -38,9 +40,15 @@ TState FiniteStateAutomaton<TState, TSignal>::Receive(TSignal signal)
     //map<pair<TSignal, TState>, TState>::iterator;
     auto i = transition.find(ss);
     if (i != transition.end())
+    {
+        qDebug() << state << "->(" << signal << ")->" << i->second;
         state = i->second;
+    }
     else
+    {
+        qDebug() << state << "->(" << signal << ")-> INVALID";
         state = invalidState;
+    }
 
     return state;
 }
@@ -48,6 +56,7 @@ TState FiniteStateAutomaton<TState, TSignal>::Receive(TSignal signal)
 template <typename TState, typename TSignal>
 void FiniteStateAutomaton<TState, TSignal>::Set(TState state)
 {
+    qDebug() << "->" << state;
     this->state = state;
 }
 

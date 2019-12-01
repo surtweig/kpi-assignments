@@ -4,6 +4,11 @@
 
 #include <map>
 #include <vector>
+#include <iostream>
+#include <istream>
+#include <sstream>
+#include <string>
+
 using namespace std;
 
 MainWindow::MainWindow(QWidget *parent)
@@ -28,6 +33,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     map<string, PascalTokens> operators =
     {
+        { ":=",  _assign   },
         { "=",  _equals    },
         { "<>", _notEquals },
         { "<",  _lower     },
@@ -53,6 +59,16 @@ MainWindow::MainWindow(QWidget *parent)
     };
 
     lex = new FSALexer<PascalTokens>(reservedWords, operators, delimiters, '\'', "//", "{", "}");
+
+    istringstream s("begin<>()end.");
+    vector<pair<PascalTokens, string>> output;
+    bool result = lex->Tokenize(s, output);
+
+    qDebug() << (result ? "Success" : "Fail") << ": Tokens " << output.size();
+    for (auto i = output.begin(); i != output.end(); ++i)
+    {
+        qDebug() << i->first << ":" << QString::fromStdString(i->second);
+    }
 }
 
 MainWindow::~MainWindow()

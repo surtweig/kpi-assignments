@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include "FiniteStateAutomaton.h"
+#include <limits>
 
 using namespace std;
 
@@ -57,6 +58,7 @@ public:
 private:
     FiniteStateAutomaton<TTokenIdSuperset, char>* fsa;
     map<string, TTokenId> tokens;
+    map<TTokenId, string> idToTkStr;
     TTokenId nullTk;
     TTokenId invalidTk;
     TTokenId identifierTk;
@@ -67,15 +69,17 @@ private:
     string commentFinish;
 
     ///
-    /// \brief readTokenStr reads a string from input between start and finish positions (inclusively)
+    /// \brief readTokenStr reads a string from input start (inclusively)
     /// then returns the stream to original position
     ///
-    string readTokenStr(istream& input, uint32_t start, uint32_t finish);
+    string readTokenStr(istream& input, uint32_t start, uint32_t count);
 
     ///
     /// \brief getMaxToken returns greatest TokenId from given tokens
     ///
     TTokenIdSuperset getMaxToken();
+
+    bool isTokenId(TTokenIdSuperset state);
 
     ///
     /// \brief fsaAddString builds a string sequence in fsa
@@ -96,19 +100,22 @@ FSALexer<TTokenId>::FSALexer(map<string, TTokenId> reservedWords, map<string, TT
     tokens.insert(operators.begin(), operators.end());
     tokens.insert(delimiters.begin(), delimiters.end());
 
+    idToTkStr.clear();
+    for (auto i = tokens.begin(); i != tokens.end(); ++i)
+        idToTkStr[i->second] = i->first;
+
     TTokenIdSuperset maxTokenId = getMaxToken();
     TTokenIdSuperset stateIndexer = maxTokenId+1;
 
     nullTk = TTokenId(++stateIndexer);
+    identifierTk = TTokenId(++stateIndexer);
+    numberTk = TTokenId(++stateIndexer);
+    stringTk = TTokenId(++stateIndexer);
     invalidTk = TTokenId(++stateIndexer);
 
     fsa = new FiniteStateAutomaton<TTokenIdSuperset, char>(nullTk, invalidTk);
 
-    identifierTk = TTokenId(++stateIndexer);
-    numberTk = TTokenId(++stateIndexer);
-    stringTk = TTokenId(++stateIndexer);
-
-    vector<char> whitespace({' ', '\t', '\n', '\r'});
+    vector<char> whitespace({' ', '\t', '\n', '\r', 0});
     vector<char> delimitersChars;
     vector<char> operatorsFirstChars;
     vector<char> identifierChars({stringDelimiter, '_'});
@@ -118,6 +125,9 @@ FSALexer<TTokenId>::FSALexer(map<string, TTokenId> reservedWords, map<string, TT
         identifierChars.push_back(c);
     for (char c = '0'; c <= '9'; ++c)
         identifierChars.push_back(c);
+
+    // Adding whitespace idling
+    fsa->AddTransition(nullTk, whitespace, nullTk);
 
     // Adding single-char delimiter tokens
     for (auto i = delimiters.begin(); i != delimiters.end(); ++i)
@@ -178,25 +188,32 @@ typename FSALexer<TTokenId>::TTokenIdSuperset FSALexer<TTokenId>::getMaxToken()
 }
 
 template <typename TTokenId>
-string FSALexer<TTokenId>::readTokenStr(istream& input, uint32_t start, uint32_t finish)
+string FSALexer<TTokenId>::readTokenStr(istream& input, uint32_t start, uint32_t count)
 {
     // storing current stream position
-    istream::pos_type pos = input.tellg();
+    //istream::pos_type pos = input.tellg();
 
     // returning to beginning of the token
     input.seekg(start);
 
+    //qDebug() << "readTokenStr: pos =" << pos << "start =" << start << "count =" << count;
+
     // reading current token's characters from the stream
-    uint32_t tksize = uint32_t(finish-start+1);
+    uint32_t tksize = uint32_t(count);
     string tkstr(tksize, ' ');
     input.read(&tkstr[0], tksize);
 
     // restoring original position
-    input.seekg(pos);
+    //input.seekg(pos);
 
     return tkstr;
 }
 
+template <typename TTokenId>
+bool FSALexer<TTokenId>::isTokenId(TTokenIdSuperset state)
+{
+    return state < invalidTk;
+}
 
 template <typename TTokenId>
 bool FSALexer<TTokenId>::Tokenize(istream& input, vector< pair<TTokenId, string> >& output)
@@ -205,11 +222,20 @@ bool FSALexer<TTokenId>::Tokenize(istream& input, vector< pair<TTokenId, string>
     {
         fsa->Set(nullTk);
         istream::pos_type currentStart = 0;
+        bool nextTokenExpected = true;
+        input.seekg(0, input.end);
+        istream::pos_type endg = input.tellg();
+        input.seekg(0, input.beg);
 
-        while (input.peek() != char_traits<char>::eof())
+        qDebug() << "Tokenize: input.tellg() =" << input.tellg();
+
+        while (input.tellg() <= endg)
         {
             istream::pos_type currentStreamPos = input.tellg();
-            TTokenIdSuperset fsaState = fsa->Receive(input.get());
+            int c = 0;
+            if (currentStreamPos < endg)
+                c = input.get();
+            TTokenIdSuperset fsaState = fsa->Receive(c);
 
             if (fsaState == invalidTk)
             {
@@ -217,28 +243,42 @@ bool FSALexer<TTokenId>::Tokenize(istream& input, vector< pair<TTokenId, string>
                 return false;
             }
 
-            if (fsaState != nullTk && currentStart == 0)
+            if (fsaState != nullTk && nextTokenExpected)
+            {
                 currentStart = currentStreamPos;
-
+                nextTokenExpected = false;
+                qDebug() << "currentStart =" << currentStart;
+            }
             // If new FSA state corresponds to a token
-            if (tokens.find(fsaState) != tokens.end())
+            if (isTokenId(fsaState))
             {
                 TTokenId nextTk = TTokenId(fsaState);
-                output.push_back(pair<TTokenId, string>(nextTk, readTokenStr(input, currentStart, currentStreamPos)));
+                if (idToTkStr.find(nextTk) != idToTkStr.end())
+                {
+                    // Any token of more than one char is stopped by the beginning
+                    // of another token, so after reading a token, input stream needs
+                    // to be returned to the first char of the next one. However,
+                    // as an exception from that rule, single-char tokens
+                    // such as delimiters are stopped by themselves and the first
+                    // char of the next token will not be consumed.
+                    uint32_t tkLength = 1;
+                    if (currentStreamPos != currentStart)
+                        tkLength = currentStreamPos - currentStart;
 
-                // Any token of more than one char is stopped by the beginning
-                // of another token, so after reading a token, input stream needs
-                // to be returned to the first char of the next one. However,
-                // as an exception from that rule, single-char tokens
-                // such as delimiters are stopped by themselves and the first
-                // char of the next token will not be consumed.
-                if (currentStreamPos != currentStart)
-                    input.seekg(currentStreamPos);
+                    output.push_back(pair<TTokenId, string>(nextTk, readTokenStr(input, currentStart, tkLength)));
 
-                fsa->Set(nullTk);
-                currentStart = 0;
+                    //input.seekg(currentStreamPos);
+
+                    fsa->Set(nullTk);
+                    nextTokenExpected = true;
+                    //currentStart = 0;
+                }
             }
+
+            if (c == 0 || c == char_traits<char>::eof())
+                break;
         }
+        return true;
     }
     else
         return false;
