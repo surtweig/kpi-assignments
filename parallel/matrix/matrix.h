@@ -2,10 +2,12 @@
 #define MATRIX_H
 
 #include <stdio.h>
+#include <iomanip>
 #include <stdlib.h>
 #include <cmath>
 #include <limits>
 #include <assert.h>
+#include <iostream>
 
 using namespace std;
 
@@ -82,7 +84,7 @@ public:
     {
         float sum1 = 0.0;
         float sum2 = 0.0;
-        for (size_t j = 0; j < _m; ++j)
+        for (size_t j = 0; j < _n; ++j)
         {
             sum1 += elements[j][i1];
             sum2 += elements[j][i2];
@@ -96,7 +98,7 @@ public:
 
     void rowswap(size_t i1, size_t i2)
     {
-        for (size_t j = 0; j < _m; ++j)
+        for (size_t j = 0; j < _n; ++j)
         {
             float t = elements[j][i1];
             elements[j][i1] = elements[j][i2];
@@ -114,7 +116,7 @@ public:
             size_t count = last-first+1;
             if (count == 2)
             {
-                if (rowcmp(last, first))
+                if (rowcmp(last, first) == 1)
                     rowswap(last, first);
             }
             else
@@ -124,9 +126,9 @@ public:
                 size_t i2 = last;
                 while (true)
                 {
-                    while (rowcmp(i1, pivot))
+                    while (rowcmp(i1, pivot) == 1)
                         ++i1;
-                    while (rowcmp(pivot,i2))
+                    while (rowcmp(pivot,i2) == 1)
                         --i2;
                     if (i1 >= i2)
                         break;
@@ -138,6 +140,19 @@ public:
             }
         }
     }
+
+
+    void bubblesort(size_t first = 0, size_t last = size_t(-1))
+    {
+        if (last == size_t(-1))
+            last = _m-1;
+
+        for (size_t j = 0; j < _n; ++j)
+        {
+
+        }
+    }
+
 
     float max() const
     {
@@ -157,6 +172,19 @@ public:
                 if (elements[j][i] < x)
                     x = elements[j][i];
         return x;
+    }
+
+    void print(ostream& cout) const
+    {
+        for (size_t i = 0; i < _m; ++i)
+        {
+            for (size_t j = 0; j < _n; ++j)
+            {
+                cout << setprecision(3) << elements[j][i] << "\t";
+            }
+            cout << "\n";
+        }
+        cout << "\n";
     }
 
     static matrix* identity(size_t m, size_t n)
@@ -212,6 +240,36 @@ public:
                     sum += a.get(i, k) * b.get(k, j);
                 result->set(i, j, sum);
             }
+        return result;
+    }
+
+    static matrix* add(const matrix& a, const matrix& b)
+    {
+        assert(a.n() == b.n() && a.m() == b.m());
+        matrix* result = new matrix(a.m(), a.n());
+        for (size_t i = 0; i < result->m(); ++i)
+            for (size_t j = 0; j < result->n(); ++j)
+            {
+                result->set(i, j, a.get(i, j) + b.get(i, j));
+            }
+        return result;
+    }
+
+    static void addto(matrix& dest, const matrix& a)
+    {
+        assert(a.n() == dest.n() && a.m() == dest.m());
+        for (size_t i = 0; i < dest.m(); ++i)
+            for (size_t j = 0; j < dest.n(); ++j)
+            {
+                dest.set(i, j, a.get(i, j) + dest.get(i, j));
+            }
+    }
+
+    static matrix* getcolumn(const matrix& source, size_t j)
+    {
+        matrix* result = new matrix(source.m(), 1);
+        for (size_t i = 0; i < result->m(); ++i)
+            result->set(i, 0, source.get(i, j));
         return result;
     }
 };

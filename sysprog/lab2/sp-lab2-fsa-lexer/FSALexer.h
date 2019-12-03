@@ -155,6 +155,8 @@ FSALexer<TTokenId>::FSALexer(map<string, TTokenId> reservedWords, map<string, TT
         fsa->AddTransition(lastCharState, delimitersChars, i->second);
         fsa->AddTransition(lastCharState, operatorsFirstChars, i->second);
     }
+
+
 }
 
 template <typename TTokenId>
