@@ -1,0 +1,301 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 d/home/surtweig/repos/kpi-assignments/dsp/lab1/simulation/modelsim
+Eadd2
+Z1 w1575417403
+Z2 DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
+Z3 DPx4 ieee 14 std_logic_1164 0 22 eNV`TJ_GofJTzYa?f<@Oe1
+R0
+Z4 8/home/surtweig/repos/kpi-assignments/dsp/lab1/Add2.vhd
+Z5 F/home/surtweig/repos/kpi-assignments/dsp/lab1/Add2.vhd
+l0
+L4
+Vg`Db5Qj4NFAab^WQo_PEG2
+!s100 O;HUo6M3Xn1^6IdcUZoCP2
+Z6 OV;C;10.5b;63
+32
+Z7 !s110 1575417965
+!i10b 1
+Z8 !s108 1575417965.000000
+Z9 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|/home/surtweig/repos/kpi-assignments/dsp/lab1/Add2.vhd|
+Z10 !s107 /home/surtweig/repos/kpi-assignments/dsp/lab1/Add2.vhd|
+!i113 1
+Z11 o-work work -2002 -explicit
+Z12 tExplicit 1 CvgOpt 0
+Aadd2
+R2
+R3
+Z13 DEx4 work 4 add2 0 22 g`Db5Qj4NFAab^WQo_PEG2
+l21
+L20
+VIJU]QKEU1^07kXC^T43O;3
+!s100 kch4U]UZnMBiYFXRQ7cBb1
+R6
+32
+R7
+!i10b 1
+R8
+R9
+R10
+!i113 1
+R11
+R12
+Eaverager
+Z14 w1575415708
+R2
+R3
+R0
+Z15 8/home/surtweig/repos/kpi-assignments/dsp/lab1/Averager.vhd
+Z16 F/home/surtweig/repos/kpi-assignments/dsp/lab1/Averager.vhd
+l0
+L4
+VL>10[4g0g@8GJ[D1kGk?Y0
+!s100 WXGK`j[7>ZOD^SQ3LJzCS0
+R6
+32
+R7
+!i10b 1
+R8
+Z17 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|/home/surtweig/repos/kpi-assignments/dsp/lab1/Averager.vhd|
+Z18 !s107 /home/surtweig/repos/kpi-assignments/dsp/lab1/Averager.vhd|
+!i113 1
+R11
+R12
+Abeh
+R2
+R3
+Z19 DEx4 work 8 averager 0 22 L>10[4g0g@8GJ[D1kGk?Y0
+l26
+L19
+V?ic53f``]gEcbQ25SNXzN1
+!s100 @=^75F[<4LW=`fOo50WnO3
+R6
+32
+R7
+!i10b 1
+R8
+R17
+R18
+!i113 1
+R11
+R12
+Egauss_gen
+Z20 w1575412067
+Z21 DPx4 ieee 9 math_real 0 22 Sk6CSihbPL<f[^Shm]=KX0
+R2
+R3
+R0
+Z22 8/home/surtweig/repos/kpi-assignments/dsp/lab1/GaussGen.vhd
+Z23 F/home/surtweig/repos/kpi-assignments/dsp/lab1/GaussGen.vhd
+l0
+L5
+V[ADS<0Qo_jR2z>An@l:m62
+!s100 GQlARdA_=m^<@jUD65G172
+R6
+32
+Z24 !s110 1575415737
+!i10b 1
+Z25 !s108 1575415737.000000
+Z26 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|/home/surtweig/repos/kpi-assignments/dsp/lab1/GaussGen.vhd|
+Z27 !s107 /home/surtweig/repos/kpi-assignments/dsp/lab1/GaussGen.vhd|
+!i113 1
+R11
+R12
+Amodel
+R21
+R2
+R3
+DEx4 work 9 gauss_gen 0 22 [ADS<0Qo_jR2z>An@l:m62
+l27
+L22
+VkE@Znk^;hLcdW9[?JJ^<U1
+!s100 Hd6GLN3UZmkK@=XBnz]il1
+R6
+32
+R24
+!i10b 1
+R25
+R26
+R27
+!i113 1
+R11
+R12
+Egaussgen
+Z28 w1575417892
+R21
+R2
+R3
+R0
+R22
+R23
+l0
+L5
+V@PXJDEKaY^1MXBdbX5nT80
+!s100 fzcoDN3YKVSOFA73DL09<3
+R6
+32
+R7
+!i10b 1
+R8
+R26
+R27
+!i113 1
+R11
+R12
+Amodel
+R21
+R2
+R3
+Z29 DEx4 work 8 gaussgen 0 22 @PXJDEKaY^1MXBdbX5nT80
+l27
+L22
+VM@c1I9GN7A?GV<naRGmSY2
+!s100 WM@c^ijimP2L:ZPZiXk[43
+R6
+32
+R7
+!i10b 1
+R8
+R26
+R27
+!i113 1
+R11
+R12
+Egen
+Z30 w1575412314
+R21
+R2
+R3
+R0
+Z31 8/home/surtweig/repos/kpi-assignments/dsp/lab1/Gen.vhd
+Z32 F/home/surtweig/repos/kpi-assignments/dsp/lab1/Gen.vhd
+l0
+L5
+Vg>^haC:]6U>]A;bQ3PYln1
+!s100 3`9dOQAJn<OdGY:o_^zX83
+R6
+32
+R7
+!i10b 1
+R8
+Z33 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|/home/surtweig/repos/kpi-assignments/dsp/lab1/Gen.vhd|
+Z34 !s107 /home/surtweig/repos/kpi-assignments/dsp/lab1/Gen.vhd|
+!i113 1
+R11
+R12
+Amodel
+R21
+R2
+R3
+Z35 DEx4 work 3 gen 0 22 g>^haC:]6U>]A;bQ3PYln1
+l26
+L22
+VdLGh5]lYQBCH9S@Y@1zSb0
+!s100 GX:el:O1zOM3;k:@7@:=`0
+R6
+32
+R7
+!i10b 1
+R8
+R33
+R34
+!i113 1
+R11
+R12
+Es_distribut
+Z36 w1575416459
+R2
+R3
+R0
+Z37 8/home/surtweig/repos/kpi-assignments/dsp/lab1/S_Distribut.vhd
+Z38 F/home/surtweig/repos/kpi-assignments/dsp/lab1/S_Distribut.vhd
+l0
+L3
+Vj<:lc[VHoi2?Y3cdz[cnc3
+!s100 BE1SK5bhb2APeS6_M@A?80
+R6
+32
+R7
+!i10b 1
+R8
+Z39 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|/home/surtweig/repos/kpi-assignments/dsp/lab1/S_Distribut.vhd|
+Z40 !s107 /home/surtweig/repos/kpi-assignments/dsp/lab1/S_Distribut.vhd|
+!i113 1
+R11
+R12
+Amodel
+R2
+R3
+Z41 DEx4 work 11 s_distribut 0 22 j<:lc[VHoi2?Y3cdz[cnc3
+l17
+L12
+VgkJVIS[;>cQ9^GiL;<7X53
+!s100 FK2=`K6flm4LE;W_10U3o0
+R6
+32
+R7
+!i10b 1
+R8
+R39
+R40
+!i113 1
+R11
+R12
+Etest
+Z42 w1575417861
+Z43 DPx4 ieee 11 numeric_std 0 22 :ASDNFgHXf_ih3J@9F3Ze1
+Z44 DPx4 ieee 15 std_logic_arith 0 22 [G314=:2zXJ`VORJe1J@Z1
+Z45 DPx4 ieee 18 std_logic_unsigned 0 22 ;eZjO2D4ZDz<]0>8AL<ne1
+R2
+R3
+R0
+Z46 8/home/surtweig/repos/kpi-assignments/dsp/lab1/Test.vhd
+Z47 F/home/surtweig/repos/kpi-assignments/dsp/lab1/Test.vhd
+l0
+L6
+V0o4l7XOK@A1``]f]Kk7Vn3
+!s100 VOMMg4ZTZL8@G9i:1no1i1
+R6
+32
+R7
+!i10b 1
+R8
+Z48 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|/home/surtweig/repos/kpi-assignments/dsp/lab1/Test.vhd|
+Z49 !s107 /home/surtweig/repos/kpi-assignments/dsp/lab1/Test.vhd|
+!i113 1
+R11
+R12
+At
+R41
+R19
+R13
+R29
+R21
+R35
+R43
+R44
+R45
+R2
+R3
+DEx4 work 4 test 0 22 0o4l7XOK@A1``]f]Kk7Vn3
+l24
+L9
+VaA;?h9?^IU1?cW;82h0i63
+!s100 noheE18fZHO@JgS>:@jSh3
+R6
+32
+R7
+!i10b 1
+R8
+R48
+R49
+!i113 1
+R11
+R12

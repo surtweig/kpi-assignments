@@ -1,0 +1,27 @@
+# Compile of GaussGen.vhd was successful.
+# Compile of Gen.vhd was successful.
+# Compile of Averager.vhd was successful.
+# Compile of Add2.vhd was successful.
+# Compile of S_Distribut.vhd was successful.
+# Compile of Test.vhd was successful.
+# 6 compiles, 0 failed with no errors.
+vsim work.test
+# vsim work.test 
+# Start time: 02:06:14 on Dec 04,2019
+# Loading std.standard
+# Loading std.textio(body)
+# Loading ieee.std_logic_1164(body)
+# Loading ieee.std_logic_arith(body)
+# Loading ieee.std_logic_unsigned(body)
+# Loading ieee.numeric_std(body)
+# Loading ieee.math_real(body)
+# Loading work.test(t)
+# Loading work.gen(model)
+# Loading work.gaussgen(model)
+# Loading work.add2(add2)
+# Loading work.averager(beh)
+# Loading work.s_distribut(model)
+add wave -position end  sim:/test/AVG_OUT
+run -all
+add wave -position end  sim:/test/noise
+run -all

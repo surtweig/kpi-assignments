@@ -1,0 +1,29 @@
+# do dsp-lab1_run_msim_gate_vhdl.do
+# if {[file exists gate_work]} {
+# 	vdel -lib gate_work -all
+# }
+# vlib gate_work
+# vmap work gate_work
+# Model Technology ModelSim - Intel FPGA Edition vmap 10.5b Lib Mapping Utility 2016.10 Oct  5 2016
+# vmap work gate_work 
+# Modifying /home/surtweig/intelFPGA_lite/19.1/modelsim_ase/linuxaloem/../modelsim.ini
+# 
+# vcom -93 -work work {dsp-lab1.vho}
+# Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 02:05:41 on Dec 04,2019
+# vcom -reportprogress 300 -93 -work work dsp-lab1.vho 
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Loading package altera_lnsim_components
+# -- Loading package VITAL_Timing
+# -- Loading package VITAL_Primitives
+# -- Loading package cyclonev_atom_pack
+# -- Loading package cyclonev_components
+# -- Compiling entity \dsp-lab1\
+# -- Compiling architecture structure of \dsp-lab1\
+# End time: 02:05:41 on Dec 04,2019, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# 
+project open /home/surtweig/repos/kpi-assignments/dsp/lab1/simulation/modelsim/sim1
+# Loading project sim1

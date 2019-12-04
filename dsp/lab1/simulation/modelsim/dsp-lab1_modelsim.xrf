@@ -1,0 +1,13 @@
+vendor_name = ModelSim
+source_file = 1, /home/surtweig/repos/kpi-assignments/dsp/lab1/dsp-lab1.bdf
+source_file = 1, /home/surtweig/repos/kpi-assignments/dsp/lab1/GaussGen.vhd
+source_file = 1, /home/surtweig/repos/kpi-assignments/dsp/lab1/Gen.vhd
+source_file = 1, /home/surtweig/intelFPGA_lite/19.1/quartus/libraries/vhdl/ieee/prmtvs_b.vhd
+source_file = 1, /home/surtweig/intelFPGA_lite/19.1/quartus/libraries/vhdl/ieee/prmtvs_p.vhd
+source_file = 1, /home/surtweig/intelFPGA_lite/19.1/quartus/libraries/vhdl/ieee/timing_b.vhd
+source_file = 1, /home/surtweig/intelFPGA_lite/19.1/quartus/libraries/vhdl/ieee/timing_p.vhd
+source_file = 1, /home/surtweig/repos/kpi-assignments/dsp/lab1/db/dsp-lab1.cbx.xml
+design_name = \dsp-lab1\
+instance = comp, \CLK~input\, CLK~input, \dsp-lab1\, 1
+instance = comp, \RESET~input\, RESET~input, \dsp-lab1\, 1
+instance = comp, \~QUARTUS_CREATED_GND~I\, ~QUARTUS_CREATED_GND~I, \dsp-lab1\, 1
