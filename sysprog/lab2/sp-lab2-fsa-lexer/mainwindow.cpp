@@ -60,7 +60,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     lex = new FSALexer<PascalTokens>(reservedWords, operators, delimiters, '\'', "//", "{", "}");
 
-    istringstream s("begin<>()end.");
+    istringstream s("begin<> zuzu()end.");
     vector<pair<PascalTokens, string>> output;
     bool result = lex->Tokenize(s, output);
 

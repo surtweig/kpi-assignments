@@ -87,6 +87,10 @@ private:
     /// \return state id of the last character
     ///
     TTokenIdSuperset fsaAddString(string tokenStr, TTokenIdSuperset& stateIndexer);
+
+    void fsaIdentifierTokenTraverse(TTokenIdSuperset start,
+                                    const map<char, TTokenIdSuperset>& baseIdChars,
+                                    const vector<char>& stopChars);
 };
 
 template <typename TTokenId>
@@ -113,12 +117,15 @@ FSALexer<TTokenId>::FSALexer(map<string, TTokenId> reservedWords, map<string, TT
     stringTk = TTokenId(++stateIndexer);
     invalidTk = TTokenId(++stateIndexer);
 
+    qDebug() << "nullTk =" << nullTk << "\nidentifierTk =" << identifierTk << "\nnumberTk =" << numberTk
+                << "\nstringTk =" << stringTk << "\ninvalidTk =" << invalidTk;
+
     fsa = new FiniteStateAutomaton<TTokenIdSuperset, char>(nullTk, invalidTk);
 
     vector<char> whitespace({' ', '\t', '\n', '\r', 0});
     vector<char> delimitersChars;
     vector<char> operatorsFirstChars;
-    vector<char> identifierChars({stringDelimiter, '_'});
+    vector<char> identifierChars({'_'});
     for (char c = 'a'; c <= 'z'; ++c)
         identifierChars.push_back(c);
     for (char c = 'A'; c <= 'Z'; ++c)
@@ -156,7 +163,24 @@ FSALexer<TTokenId>::FSALexer(map<string, TTokenId> reservedWords, map<string, TT
         fsa->AddTransition(lastCharState, operatorsFirstChars, i->second);
     }
 
+    // Adding identifiers
+    vector<char> stopChars(whitespace);
+    stopChars.insert(stopChars.end(), delimitersChars.begin(), delimitersChars.end());
+    stopChars.insert(stopChars.end(), operatorsFirstChars.begin(), operatorsFirstChars.end());
 
+    map<char, TTokenIdSuperset> baseIdChars;
+    for (auto i = identifierChars.begin(); i != identifierChars.end(); ++i)
+    {
+        baseIdChars[*i] = ++stateIndexer;
+        qDebug() << "baseIdChar" << *i << baseIdChars[*i];
+        if (*i < '0' || *i > '9')
+            fsa->AddTransition(nullTk, *i, baseIdChars[*i], false);
+        //fsaIdentifierTokenTraverse(baseIdChars[*i], baseIdChars, stopChars);
+    }
+    for (auto i = identifierChars.begin(); i != identifierChars.end(); ++i)
+    {
+        fsaIdentifierTokenTraverse(baseIdChars[*i], baseIdChars, stopChars);
+    }
 }
 
 template <typename TTokenId>
@@ -169,12 +193,35 @@ typename FSALexer<TTokenId>::TTokenIdSuperset FSALexer<TTokenId>::fsaAddString(s
         if (nextState == invalidTk)
         {
             nextState = ++stateIndexer;
+            qDebug() << QString::fromStdString(tokenStr) << *ci << nextState;
             fsa->AddTransition(state, *ci, nextState);
         }
         state = nextState;
     }
     return state;
 }
+
+template <typename TTokenId>
+void FSALexer<TTokenId>::fsaIdentifierTokenTraverse(TTokenIdSuperset start,
+                                const map<char, TTokenIdSuperset>& baseIdChars,
+                                const vector<char>& stopChars)
+{
+    // remembering all transitions from that state
+    map<char, TTokenIdSuperset> trans = fsa->GetTransitions(start);
+
+    // adding identifier chars transitions
+    fsa->AddTransition(start, baseIdChars, false);
+
+    // adding stop transitions to the Identifier token
+    fsa->AddTransition(start, stopChars, identifierTk, false);
+
+    // traverse original transitions
+    for (auto i = trans.begin(); i != trans.end(); ++i)
+        // if a transition could lead to an identifier
+        if (baseIdChars.find(i->first) != baseIdChars.end())
+            fsaIdentifierTokenTraverse(i->second, baseIdChars, stopChars);
+}
+
 
 template <typename TTokenId>
 typename FSALexer<TTokenId>::TTokenIdSuperset FSALexer<TTokenId>::getMaxToken()
@@ -255,7 +302,7 @@ bool FSALexer<TTokenId>::Tokenize(istream& input, vector< pair<TTokenId, string>
             if (isTokenId(fsaState))
             {
                 TTokenId nextTk = TTokenId(fsaState);
-                if (idToTkStr.find(nextTk) != idToTkStr.end())
+                if (idToTkStr.find(nextTk) != idToTkStr.end() || nextTk == identifierTk)
                 {
                     // Any token of more than one char is stopped by the beginning
                     // of another token, so after reading a token, input stream needs
