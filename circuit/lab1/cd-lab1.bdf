@@ -1,0 +1,223 @@
+/*
+WARNING: Do NOT edit the input and output ports in this file in a text
+editor if you plan to continue editing the block that represents it in
+the Block Editor! File corruption is VERY likely to occur.
+*/
+/*
+Copyright (C) 2019  Intel Corporation. All rights reserved.
+Your use of Intel Corporation's design tools, logic functions 
+and other software and tools, and any partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Intel Program License 
+Subscription Agreement, the Intel Quartus Prime License Agreement,
+the Intel FPGA IP License Agreement, or other applicable license
+agreement, including, without limitation, that your use is for
+the sole purpose of programming logic devices manufactured by
+Intel and sold by Intel or its authorized distributors.  Please
+refer to the applicable agreement for further details, at
+https://fpgasoftware.intel.com/eula.
+*/
+(header "graphic" (version "1.4"))
+(alias "<<__$DEF_ALIAS195>>""in_x2")
+(alias "<<__$DEF_ALIAS194>>""in_x2")
+(alias "<<__$DEF_ALIAS696>>""out_y")
+(alias "<<__$DEF_ALIAS3>>""in_x3;in_x2;in_x1;y")
+(alias "<<__$DEF_ALIAS1>>""in_x2")
+(alias "<<__$DEF_ALIAS0>>""in_x1")
+(pin
+	(input)
+	(rect 40 184 208 200)
+	(text "INPUT" (rect 125 0 161 11)(font "Arial" (font_size 6)))
+	(text "in_x1" (rect 5 0 41 14)(font "Arial" ))
+	(pt 168 8)
+	(drawing
+		(line (pt 84 12)(pt 109 12))
+		(line (pt 84 4)(pt 109 4))
+		(line (pt 113 8)(pt 168 8))
+		(line (pt 84 12)(pt 84 4))
+		(line (pt 109 4)(pt 113 8))
+		(line (pt 109 12)(pt 113 8))
+	)
+	(text "VCC" (rect 128 7 155 18)(font "Arial" (font_size 6)))
+)
+(pin
+	(input)
+	(rect 40 216 208 232)
+	(text "INPUT" (rect 125 0 161 11)(font "Arial" (font_size 6)))
+	(text "in_x2" (rect 5 0 41 16)(font "Intel Clear" ))
+	(pt 168 8)
+	(drawing
+		(line (pt 84 12)(pt 109 12))
+		(line (pt 84 4)(pt 109 4))
+		(line (pt 113 8)(pt 168 8))
+		(line (pt 84 12)(pt 84 4))
+		(line (pt 109 4)(pt 113 8))
+		(line (pt 109 12)(pt 113 8))
+	)
+	(text "VCC" (rect 128 7 155 18)(font "Arial" (font_size 6)))
+)
+(pin
+	(input)
+	(rect 32 272 200 288)
+	(text "INPUT" (rect 125 0 161 11)(font "Arial" (font_size 6)))
+	(text "in_x3" (rect 5 0 41 16)(font "Intel Clear" ))
+	(pt 168 8)
+	(drawing
+		(line (pt 84 12)(pt 109 12))
+		(line (pt 84 4)(pt 109 4))
+		(line (pt 113 8)(pt 168 8))
+		(line (pt 84 12)(pt 84 4))
+		(line (pt 109 4)(pt 113 8))
+		(line (pt 109 12)(pt 113 8))
+	)
+	(text "VCC" (rect 128 7 155 18)(font "Arial" (font_size 6)))
+)
+(pin
+	(input)
+	(rect 56 424 224 440)
+	(text "INPUT" (rect 125 0 161 11)(font "Arial" (font_size 6)))
+	(text "in2_x1" (rect 5 0 49 14)(font "Arial" ))
+	(pt 168 8)
+	(drawing
+		(line (pt 84 12)(pt 109 12))
+		(line (pt 84 4)(pt 109 4))
+		(line (pt 113 8)(pt 168 8))
+		(line (pt 84 12)(pt 84 4))
+		(line (pt 109 4)(pt 113 8))
+		(line (pt 109 12)(pt 113 8))
+	)
+	(text "VCC" (rect 128 7 155 18)(font "Arial" (font_size 6)))
+)
+(pin
+	(input)
+	(rect 56 480 224 496)
+	(text "INPUT" (rect 125 0 161 11)(font "Arial" (font_size 6)))
+	(text "in2_x2" (rect 5 0 50 16)(font "Intel Clear" ))
+	(pt 168 8)
+	(drawing
+		(line (pt 84 12)(pt 109 12))
+		(line (pt 84 4)(pt 109 4))
+		(line (pt 113 8)(pt 168 8))
+		(line (pt 84 12)(pt 84 4))
+		(line (pt 109 4)(pt 113 8))
+		(line (pt 109 12)(pt 113 8))
+	)
+	(text "VCC" (rect 128 7 155 18)(font "Arial" (font_size 6)))
+)
+(pin
+	(input)
+	(rect 56 520 224 536)
+	(text "INPUT" (rect 125 0 161 11)(font "Arial" (font_size 6)))
+	(text "in2_x3" (rect 5 0 50 16)(font "Intel Clear" ))
+	(pt 168 8)
+	(drawing
+		(line (pt 84 12)(pt 109 12))
+		(line (pt 84 4)(pt 109 4))
+		(line (pt 113 8)(pt 168 8))
+		(line (pt 84 12)(pt 84 4))
+		(line (pt 109 4)(pt 113 8))
+		(line (pt 109 12)(pt 113 8))
+	)
+	(text "VCC" (rect 128 7 155 18)(font "Arial" (font_size 6)))
+)
+(pin
+	(output)
+	(rect 752 240 928 256)
+	(text "OUTPUT" (rect 1 0 51 11)(font "Arial" (font_size 6)))
+	(text "out_y" (rect 90 0 127 16)(font "Intel Clear" ))
+	(pt 0 8)
+	(drawing
+		(line (pt 0 8)(pt 52 8))
+		(line (pt 52 4)(pt 78 4))
+		(line (pt 52 12)(pt 78 12))
+		(line (pt 52 12)(pt 52 4))
+		(line (pt 78 4)(pt 82 8))
+		(line (pt 82 8)(pt 78 12))
+		(line (pt 78 12)(pt 82 8))
+	)
+)
+(pin
+	(output)
+	(rect 736 504 912 520)
+	(text "OUTPUT" (rect 1 0 51 11)(font "Arial" (font_size 6)))
+	(text "out2_y" (rect 90 0 136 16)(font "Intel Clear" ))
+	(pt 0 8)
+	(drawing
+		(line (pt 0 8)(pt 52 8))
+		(line (pt 52 4)(pt 78 4))
+		(line (pt 52 12)(pt 78 12))
+		(line (pt 52 12)(pt 52 4))
+		(line (pt 78 4)(pt 82 8))
+		(line (pt 82 8)(pt 78 12))
+		(line (pt 78 12)(pt 82 8))
+	)
+)
+(block
+	(rect 344 152 576 312)
+	(text "block1" (rect 5 5 52 22)(font "Intel Clear" (font_size 8)))	(text "inst" (rect 5 141 29 157)(font "Intel Clear" ))	(block_io "x1" (input))
+	(block_io "x2" (input))
+	(block_io "x3" (input))
+	(block_io "y" (output))
+	(mapper
+		(pt 0 128)
+		(bidir)
+		(mapping "x3" "in_x3" )
+		(annotation_block (mapping)(rect 224 296 322 330))
+	)
+	(mapper
+		(pt 0 96)
+		(bidir)
+		(mapping "x2" "in_x2" )
+		(annotation_block (mapping)(rect 224 232 328 272))
+	)
+	(mapper
+		(pt 0 40)
+		(bidir)
+		(mapping "x1" "in_x1" )
+		(annotation_block (mapping)(rect 208 136 312 176))
+	)
+	(mapper
+		(pt 232 96)
+		(bidir)
+		(mapping "y" "out_y" )
+		(annotation_block (mapping)(rect 592 264 696 304))
+	)
+)
+(connector
+	(text "<<__$DEF_ALIAS0>>" (rect -40 0 102 14)(font "Arial" )(invisible))
+	(pt 208 192)
+	(pt 344 192)
+	(conduit)
+)
+(connector
+	(text "<<__$DEF_ALIAS194>>" (rect 0 0 158 14)(font "Arial" )(invisible))
+	(pt 336 248)
+	(pt 336 224)
+	(conduit)
+)
+(connector
+	(text "<<__$DEF_ALIAS195>>" (rect 0 0 158 14)(font "Arial" )(invisible))
+	(pt 344 248)
+	(pt 336 248)
+	(conduit)
+)
+(connector
+	(text "<<__$DEF_ALIAS1>>" (rect -40 -24 102 -10)(font "Arial" )(invisible))
+	(pt 336 224)
+	(pt 208 224)
+	(conduit)
+)
+(connector
+	(text "<<__$DEF_ALIAS3>>" (rect -56 -32 86 -18)(font "Arial" )(invisible))
+	(pt 344 280)
+	(pt 200 280)
+	(conduit)
+)
+(connector
+	(text "<<__$DEF_ALIAS696>>" (rect 0 0 158 14)(font "Arial" )(invisible))
+	(pt 752 248)
+	(pt 576 248)
+	(conduit)
+)
