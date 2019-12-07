@@ -1,0 +1,69 @@
+/*
+WARNING: Do NOT edit the input and output ports in this file in a text
+editor if you plan to continue editing the block that represents it in
+the Block Editor! File corruption is VERY likely to occur.
+*/
+/*
+Copyright (C) 2019  Intel Corporation. All rights reserved.
+Your use of Intel Corporation's design tools, logic functions 
+and other software and tools, and any partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Intel Program License 
+Subscription Agreement, the Intel Quartus Prime License Agreement,
+the Intel FPGA IP License Agreement, or other applicable license
+agreement, including, without limitation, that your use is for
+the sole purpose of programming logic devices manufactured by
+Intel and sold by Intel or its authorized distributors.  Please
+refer to the applicable agreement for further details, at
+https://fpgasoftware.intel.com/eula.
+*/
+(header "symbol" (version "1.2"))
+(symbol
+	(rect 0 0 160 112)
+	(text "sm2" (rect 65 0 105 19)(font "Arial" (font_size 10)))
+	(text "inst" (rect 8 94 32 108)(font "Arial" ))
+	(port
+		(pt 0 40)
+		(input)
+		(text "dataa[0]" (rect 0 0 55 15)(font "Arial" (font_size 8)))
+		(text "dataa[0]" (rect 4 25 51 39)(font "Arial" (font_size 8)))
+		(line (pt 0 40)(pt 64 40))
+	)
+	(port
+		(pt 0 72)
+		(input)
+		(text "datab[0]" (rect 0 0 55 15)(font "Arial" (font_size 8)))
+		(text "datab[0]" (rect 4 57 51 71)(font "Arial" (font_size 8)))
+		(line (pt 0 72)(pt 64 72))
+	)
+	(port
+		(pt 160 56)
+		(output)
+		(text "result[0]" (rect 0 0 55 15)(font "Arial" (font_size 8)))
+		(text "result[0]" (rect 111 41 158 55)(font "Arial" (font_size 8)))
+		(line (pt 160 56)(pt 96 56))
+	)
+	(port
+		(pt 160 96)
+		(output)
+		(text "cout" (rect 0 0 30 15)(font "Arial" (font_size 8)))
+		(text "cout" (rect 132 81 158 95)(font "Arial" (font_size 8)))
+		(line (pt 160 96)(pt 80 96))
+	)
+	(drawing
+		(text "A+B" (rect 71 50 168 114)(font "Arial" (font_size 8)))
+		(text "A" (rect 63 34 136 82)(font "Arial" (font_size 8)))
+		(text "B" (rect 63 66 134 146)(font "Arial" (font_size 8)))
+		(line (pt 64 32)(pt 64 80))
+		(line (pt 64 32)(pt 96 40))
+		(line (pt 64 80)(pt 96 72))
+		(line (pt 96 40)(pt 96 72))
+		(line (pt 80 76)(pt 80 96))
+		(line (pt 0 0)(pt 162 0))
+		(line (pt 162 0)(pt 162 114))
+		(line (pt 0 114)(pt 162 114))
+		(line (pt 0 0)(pt 0 114))
+	)
+)
