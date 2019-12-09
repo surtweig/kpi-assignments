@@ -1,0 +1,10 @@
+LPM_DIRECTION=RIGHT
+LPM_TYPE=LPM_SHIFTREG
+LPM_WIDTH=10
+DEVICE_FAMILY="Cyclone V"
+aclr
+aset
+clock
+data
+load
+q
