@@ -8,6 +8,8 @@
 #include <cmath>
 #include <chrono>
 
+#define MSIZE 5
+
 using namespace std;
 
 mutex printlock;
@@ -48,10 +50,10 @@ void test2()
 // 1.5 C = SORT(A) *(MA*ME) + SORT(B)
 void F1()
 {
-    matrix* MA = matrix::random(5, 5, 0.0, 1.0);
-    matrix* ME = matrix::random(5, 5, 0.0, 1.0);
-    matrix* A = matrix::random(5, 1, 0.0, 1.0);//matrix::getcolumn(*MA, 0);
-    matrix* B = matrix::random(5, 1, 0.0, 1.0);
+    matrix* MA = matrix::random(MSIZE, MSIZE, 0.0, 1.0);
+    matrix* ME = matrix::random(MSIZE, MSIZE, 0.0, 1.0);
+    matrix* A = matrix::random(MSIZE, 1, 0.0, 1.0);//matrix::getcolumn(*MA, 0);
+    matrix* B = matrix::random(MSIZE, 1, 0.0, 1.0);
 
     matrix* ae = matrix::multiply(*MA, *ME);
     A->sort();
@@ -60,6 +62,7 @@ void F1()
 
     matrix* C = matrix::add(*aae, *B);
     printlock.lock();
+    cout << "F1():\n";
     C->print(cout);
     printlock.unlock();
 
@@ -75,13 +78,14 @@ void F1()
 // 2.5 MG = SORT(MF) * MK + ML
 void F2()
 {
-    matrix* MF = matrix::random(5, 5, 0.0, 1.0);
-    matrix* MK = matrix::random(5, 5, 0.0, 1.0);
-    matrix* ML = matrix::random(5, 5, 0.0, 1.0);
+    matrix* MF = matrix::random(MSIZE, MSIZE, 0.0, 1.0);
+    matrix* MK = matrix::random(MSIZE, MSIZE, 0.0, 1.0);
+    matrix* ML = matrix::random(MSIZE, MSIZE, 0.0, 1.0);
     MF->sort();
     matrix* MFK = matrix::multiply(*MF, *MK);
     matrix::addto(*MFK, *ML);
     printlock.lock();
+    cout << "F2():\n";
     MFK->print(cout);
     printlock.unlock();
     delete MF;
@@ -93,14 +97,15 @@ void F2()
 // 3.5 O = (SORT(MP*MR)*S)
 void F3()
 {
-    matrix* MP = matrix::random(5, 5, 0.0, 1.0);
-    matrix* MR = matrix::random(5, 5, 0.0, 1.0);
-    matrix* S = matrix::random(5, 1, 0.0, 1.0);
+    matrix* MP = matrix::random(MSIZE, MSIZE, 0.0, 1.0);
+    matrix* MR = matrix::random(MSIZE, MSIZE, 0.0, 1.0);
+    matrix* S = matrix::random(MSIZE, 1, 0.0, 1.0);
 
     matrix* MRP = matrix::multiply(*MP, *MR);
     MRP->sort();
     matrix* result = matrix::multiply(*MRP, *S);
     printlock.lock();
+    cout << "F3():\n";
     result->print(cout);
     printlock.unlock();
 

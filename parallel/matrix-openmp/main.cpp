@@ -1,12 +1,14 @@
 #include "../matrix/matrix.h"
 
+#define MSIZE 5
+
 // 1.5 C = SORT(A) *(MA*ME) + SORT(B)
 void F1()
 {
-    matrix* MA = matrix::random(5, 5, 0.0, 1.0);
-    matrix* ME = matrix::random(5, 5, 0.0, 1.0);
-    matrix* A = matrix::random(5, 1, 0.0, 1.0);//matrix::getcolumn(*MA, 0);
-    matrix* B = matrix::random(5, 1, 0.0, 1.0);
+    matrix* MA = matrix::random(MSIZE, MSIZE, 0.0, 1.0);
+    matrix* ME = matrix::random(MSIZE, MSIZE, 0.0, 1.0);
+    matrix* A = matrix::random(MSIZE, 1, 0.0, 1.0);//matrix::getcolumn(*MA, 0);
+    matrix* B = matrix::random(MSIZE, 1, 0.0, 1.0);
 
     matrix* ae = matrix::multiply(*MA, *ME);
     A->sort();
@@ -17,7 +19,7 @@ void F1()
 
 #pragma omp critical
     {
-        cout << "F1()\n:";
+        cout << "F1():\n";
         C->print(cout);
     }
 
@@ -33,16 +35,16 @@ void F1()
 // 2.5 MG = SORT(MF) * MK + ML
 void F2()
 {
-    matrix* MF = matrix::random(5, 5, 0.0, 1.0);
-    matrix* MK = matrix::random(5, 5, 0.0, 1.0);
-    matrix* ML = matrix::random(5, 5, 0.0, 1.0);
+    matrix* MF = matrix::random(MSIZE, MSIZE, 0.0, 1.0);
+    matrix* MK = matrix::random(MSIZE, MSIZE, 0.0, 1.0);
+    matrix* ML = matrix::random(MSIZE, MSIZE, 0.0, 1.0);
     MF->sort();
     matrix* MFK = matrix::multiply(*MF, *MK);
     matrix::addto(*MFK, *ML);
 
 #pragma omp critical
     {
-        cout << "F2()\n:";
+        cout << "F2():\n";
         MFK->print(cout);
     }
 
@@ -55,9 +57,9 @@ void F2()
 // 3.5 O = (SORT(MP*MR)*S)
 void F3()
 {
-    matrix* MP = matrix::random(5, 5, 0.0, 1.0);
-    matrix* MR = matrix::random(5, 5, 0.0, 1.0);
-    matrix* S = matrix::random(5, 1, 0.0, 1.0);
+    matrix* MP = matrix::random(MSIZE, MSIZE, 0.0, 1.0);
+    matrix* MR = matrix::random(MSIZE, MSIZE, 0.0, 1.0);
+    matrix* S = matrix::random(MSIZE, 1, 0.0, 1.0);
 
     matrix* MRP = matrix::multiply(*MP, *MR);
     MRP->sort();
@@ -65,7 +67,7 @@ void F3()
 
 #pragma omp critical
     {
-        cout << "F3()\n:";
+        cout << "F3():\n";
         result->print(cout);
     }
 
