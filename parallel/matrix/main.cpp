@@ -1,8 +1,12 @@
+//#define FORCE_SINGLE_THREAD
+
 #include <iostream>
 #include <string>
 #include <thread>
 #include <mutex>
 #include "matrix.h"
+#include <cmath>
+#include <chrono>
 
 using namespace std;
 
@@ -24,6 +28,24 @@ void test()
     delete m3;
 }
 
+void test2()
+{
+    matrix* a = matrix::random(3, 7, 0.0, 1.0);
+    matrix* b = matrix::random(7, 6, 0.0, 1.0);
+    matrix* c = matrix::multiply(*a, *b);
+    matrix* v = matrix::random(10, 1, 0.0, 1.0);
+    c->print(cout);
+    v->print(cout);
+    v->sort();
+    v->print(cout);
+
+    delete a;
+    delete b;
+    delete c;
+}
+
+
+// 1.5 C = SORT(A) *(MA*ME) + SORT(B)
 void F1()
 {
     matrix* MA = matrix::random(5, 5, 0.0, 1.0);
@@ -31,19 +53,10 @@ void F1()
     matrix* A = matrix::random(5, 1, 0.0, 1.0);//matrix::getcolumn(*MA, 0);
     matrix* B = matrix::random(5, 1, 0.0, 1.0);
 
-    //MA->print(cout);
-    //ME->print(cout);
-    //A->print(cout);
-    //B->print(cout);
-
     matrix* ae = matrix::multiply(*MA, *ME);
     A->sort();
-    //matrix* AT = matrix::transponse(*A);
     B->sort();
-    //B->print(cout);
     matrix* aae = matrix::multiply(*ae, *A);
-    //C->print(cout);
-    //aae->print(cout);
 
     matrix* C = matrix::add(*aae, *B);
     printlock.lock();
@@ -59,6 +72,7 @@ void F1()
     delete aae;
 }
 
+// 2.5 MG = SORT(MF) * MK + ML
 void F2()
 {
     matrix* MF = matrix::random(5, 5, 0.0, 1.0);
@@ -76,6 +90,7 @@ void F2()
     delete MFK;
 }
 
+// 3.5 O = (SORT(MP*MR)*S)
 void F3()
 {
     matrix* MP = matrix::random(5, 5, 0.0, 1.0);
@@ -96,36 +111,26 @@ void F3()
     delete result;
 }
 
-void test2()
-{
-    matrix* a = matrix::random(3, 7, 0.0, 1.0);
-    matrix* b = matrix::random(7, 6, 0.0, 1.0);
-    matrix* c = matrix::multiply(*a, *b);
-    matrix* v = matrix::random(10, 1, 0.0, 1.0);
-    c->print(cout);
-    v->print(cout);
-    v->sort();
-    v->print(cout);
-
-    delete a;
-    delete b;
-    delete c;
-}
-
 int main(int argc, char *argv[])
 {
-
-    //F1();
-    //test2();
+#ifdef FORCE_SINGLE_THREAD
+    auto begin = std::chrono::high_resolution_clock::now();
+    F1();
+    F2();
+    F3();
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << " us" << std::endl;
+#else
+    auto begin = std::chrono::high_resolution_clock::now();
     thread tf1(F1);
     thread tf2(F2);
     thread tf3(F3);
-
     tf1.join();
     tf2.join();
     tf3.join();
-    //tf1.join();
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << " us" << std::endl;
+#endif
     cout << "\n";
     return 0;
 }
-
