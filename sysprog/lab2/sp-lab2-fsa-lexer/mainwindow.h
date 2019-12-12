@@ -35,9 +35,14 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private slots:
+    void on_plainTextEdit_textChanged();
+
 private:
     Ui::MainWindow *ui;
     //FiniteStateAutomaton<int, int>* fsm;
     FSALexer<PascalTokens>* lex;
+
+    void refreshTokensList();
 };
 #endif // MAINWINDOW_H

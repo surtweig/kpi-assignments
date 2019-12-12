@@ -8,6 +8,7 @@
 #include <istream>
 #include <sstream>
 #include <string>
+#include <QColor>
 
 using namespace std;
 
@@ -60,7 +61,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     lex = new FSALexer<PascalTokens>(reservedWords, operators, delimiters, '\'', "//", "{", "}");
 
-    istringstream s("begin<> zuzu()end.");
+    /*
+    istringstream s("begin aaaa:=bbbb; end.");
     vector<pair<PascalTokens, string>> output;
     bool result = lex->Tokenize(s, output);
 
@@ -69,6 +71,7 @@ MainWindow::MainWindow(QWidget *parent)
     {
         qDebug() << i->first << ":" << QString::fromStdString(i->second);
     }
+    */
 }
 
 MainWindow::~MainWindow()
@@ -76,3 +79,63 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::refreshTokensList()
+{
+    QString t = ui->plainTextEdit->toPlainText();
+    istringstream s(t.toStdString());
+    vector<pair<PascalTokens, string>> output;
+    bool result = lex->Tokenize(s, output);
+
+    ui->listWidget->clear();
+    if (result)
+    {
+        ui->listWidget->addItem("Success!");
+        QBrush brush = ui->listWidget->item(0)->foreground();
+        brush.setColor(QColor(Qt::GlobalColor::green));
+        ui->listWidget->item(0)->setForeground(brush);
+    }
+    else
+    {
+        ui->listWidget->addItem("Fail!");
+        QBrush brush = ui->listWidget->item(0)->foreground();
+        brush.setColor(QColor(Qt::GlobalColor::red));
+        ui->listWidget->item(0)->setForeground(brush);
+    }
+
+    for (auto i = output.begin(); i != output.end(); ++i)
+    {
+        //qDebug() << i->first << ":" << QString::fromStdString(i->second);
+        QString prefix = "";
+        QString postfix = "";
+        QColor foreColor = QColor(Qt::GlobalColor::black);
+        if (i->first == lex->IdentifierToken())
+        {
+            prefix = "id \"";
+            postfix = "\"";
+        }
+        else if (i->first == lex->NumberLiteralToken())
+        {
+            prefix = "num \"";
+            postfix = "\"";
+        }
+        else if (i->first == lex->StringLiteralToken())
+        {
+            prefix = "str \"";
+            postfix = "\"";
+        }
+        else
+        {
+            foreColor = QColor(Qt::GlobalColor::blue);
+        }
+        ui->listWidget->addItem(prefix + QString::fromStdString(i->second) + postfix);
+        int itemIndex = ui->listWidget->count()-1;
+        QBrush brush = ui->listWidget->item(itemIndex)->foreground();
+        brush.setColor(foreColor);
+        ui->listWidget->item(itemIndex)->setForeground(brush);
+    }
+}
+
+void MainWindow::on_plainTextEdit_textChanged()
+{
+    refreshTokensList();
+}

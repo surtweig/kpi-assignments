@@ -90,7 +90,8 @@ private:
 
     void fsaIdentifierTokenTraverse(TTokenIdSuperset start,
                                     const map<char, TTokenIdSuperset>& baseIdChars,
-                                    const vector<char>& stopChars);
+                                    const vector<char>& stopChars,
+                                    TTokenId tokenId);
 };
 
 template <typename TTokenId>
@@ -126,12 +127,17 @@ FSALexer<TTokenId>::FSALexer(map<string, TTokenId> reservedWords, map<string, TT
     vector<char> delimitersChars;
     vector<char> operatorsFirstChars;
     vector<char> identifierChars({'_'});
+    vector<char> numberChars;
     for (char c = 'a'; c <= 'z'; ++c)
         identifierChars.push_back(c);
     for (char c = 'A'; c <= 'Z'; ++c)
         identifierChars.push_back(c);
     for (char c = '0'; c <= '9'; ++c)
+    {
         identifierChars.push_back(c);
+        numberChars.push_back(c);
+    }
+    numberChars.push_back('.');
 
     // Adding whitespace idling
     fsa->AddTransition(nullTk, whitespace, nullTk);
@@ -171,7 +177,11 @@ FSALexer<TTokenId>::FSALexer(map<string, TTokenId> reservedWords, map<string, TT
     map<char, TTokenIdSuperset> baseIdChars;
     for (auto i = identifierChars.begin(); i != identifierChars.end(); ++i)
     {
-        baseIdChars[*i] = ++stateIndexer;
+        TTokenIdSuperset existingChar = fsa->GetTransition(nullTk, *i);
+        if (existingChar != invalidTk)
+            baseIdChars[*i] = existingChar;
+        else
+            baseIdChars[*i] = ++stateIndexer;
         qDebug() << "baseIdChar" << *i << baseIdChars[*i];
         if (*i < '0' || *i > '9')
             fsa->AddTransition(nullTk, *i, baseIdChars[*i], false);
@@ -179,8 +189,51 @@ FSALexer<TTokenId>::FSALexer(map<string, TTokenId> reservedWords, map<string, TT
     }
     for (auto i = identifierChars.begin(); i != identifierChars.end(); ++i)
     {
-        fsaIdentifierTokenTraverse(baseIdChars[*i], baseIdChars, stopChars);
+        fsaIdentifierTokenTraverse(baseIdChars[*i], baseIdChars, stopChars, identifierTk);
     }
+
+    // Adding numbers
+    map <char, TTokenIdSuperset> baseNumberChars;
+    for (auto i = numberChars.begin(); i != numberChars.end(); ++i)
+    {
+        baseNumberChars[*i] = ++stateIndexer;
+        qDebug() << "baseNumberChar" << *i << baseIdChars[*i];
+        if (*i != '.')
+            fsa->AddTransition(nullTk, *i, baseNumberChars[*i]);
+    }
+    for (auto i = numberChars.begin(); i != numberChars.end(); ++i)
+    {
+        fsaIdentifierTokenTraverse(baseNumberChars[*i], baseNumberChars, stopChars, numberTk);
+    }
+
+    // Adding strings
+    map <char, TTokenIdSuperset> baseStrChars;
+    TTokenIdSuperset strStartState = stateIndexer++;
+    TTokenIdSuperset strFinishState = stateIndexer++;
+    qDebug() << "strStart" << strStartState;
+    qDebug() << "strFinish" << strFinishState;
+    fsa->AddTransition(nullTk, stringDelimiter, strStartState);
+    for (int c = 0; c < 0xff; ++c)
+    {
+        if (isprint(c) && c != stringDelimiter)
+        {
+            baseStrChars[char(c)] = ++stateIndexer;
+            fsa->AddTransition(strStartState, c, baseStrChars[c]);
+            qDebug() << "printable '" << char(c) << "'" << baseStrChars[c];
+        }
+    }
+    for (auto i = baseStrChars.begin(); i != baseStrChars.end(); ++i)
+    {
+        fsa->AddTransition(i->second, stringDelimiter, strFinishState);
+        for (int c = 0; c < 0xff; ++c)
+        {
+            if (isprint(c) && c != stringDelimiter)
+            {
+                fsa->AddTransition(i->second, c, baseStrChars[c]);
+            }
+        }
+    }
+    fsa->AddTransition(strFinishState, stopChars, stringTk);
 }
 
 template <typename TTokenId>
@@ -204,7 +257,8 @@ typename FSALexer<TTokenId>::TTokenIdSuperset FSALexer<TTokenId>::fsaAddString(s
 template <typename TTokenId>
 void FSALexer<TTokenId>::fsaIdentifierTokenTraverse(TTokenIdSuperset start,
                                 const map<char, TTokenIdSuperset>& baseIdChars,
-                                const vector<char>& stopChars)
+                                const vector<char>& stopChars,
+                                TTokenId tokenId)
 {
     // remembering all transitions from that state
     map<char, TTokenIdSuperset> trans = fsa->GetTransitions(start);
@@ -213,13 +267,13 @@ void FSALexer<TTokenId>::fsaIdentifierTokenTraverse(TTokenIdSuperset start,
     fsa->AddTransition(start, baseIdChars, false);
 
     // adding stop transitions to the Identifier token
-    fsa->AddTransition(start, stopChars, identifierTk, false);
+    fsa->AddTransition(start, stopChars, tokenId, false);
 
     // traverse original transitions
     for (auto i = trans.begin(); i != trans.end(); ++i)
         // if a transition could lead to an identifier
         if (baseIdChars.find(i->first) != baseIdChars.end())
-            fsaIdentifierTokenTraverse(i->second, baseIdChars, stopChars);
+            fsaIdentifierTokenTraverse(i->second, baseIdChars, stopChars, tokenId);
 }
 
 
@@ -302,7 +356,10 @@ bool FSALexer<TTokenId>::Tokenize(istream& input, vector< pair<TTokenId, string>
             if (isTokenId(fsaState))
             {
                 TTokenId nextTk = TTokenId(fsaState);
-                if (idToTkStr.find(nextTk) != idToTkStr.end() || nextTk == identifierTk)
+                if (idToTkStr.find(nextTk) != idToTkStr.end()
+                        || nextTk == identifierTk
+                        || nextTk == numberTk
+                        || nextTk == stringTk)
                 {
                     // Any token of more than one char is stopped by the beginning
                     // of another token, so after reading a token, input stream needs
