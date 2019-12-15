@@ -1,6 +1,8 @@
 #ifndef FSALEXER_H
 #define FSALEXER_H
 
+//#define LEXER_LOG
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -126,8 +128,10 @@ FSALexer<TTokenId>::FSALexer(map<string, TTokenId> reservedWords, map<string, TT
     stringTk = TTokenId(++stateIndexer);
     invalidTk = TTokenId(++stateIndexer);
 
+#ifdef LEXER_LOG
     qDebug() << "nullTk =" << nullTk << "\nidentifierTk =" << identifierTk << "\nnumberTk =" << numberTk
                 << "\nstringTk =" << stringTk << "\ninvalidTk =" << invalidTk;
+#endif
 
     fsa = new FiniteStateAutomaton<TTokenIdSuperset, char>(nullTk, invalidTk);
 
@@ -192,7 +196,9 @@ FSALexer<TTokenId>::FSALexer(map<string, TTokenId> reservedWords, map<string, TT
             reservedWordsFirstCharStates.push_back(existingChar);
 
         baseIdChars[*i] = ++stateIndexer;
+#ifdef LEXER_LOG
         qDebug() << "baseIdChar" << *i << baseIdChars[*i];
+#endif
         if (*i < '0' || *i > '9')
             fsa->AddTransition(nullTk, *i, baseIdChars[*i], false);
     }
@@ -210,7 +216,9 @@ FSALexer<TTokenId>::FSALexer(map<string, TTokenId> reservedWords, map<string, TT
     for (auto i = numberChars.begin(); i != numberChars.end(); ++i)
     {
         baseNumberChars[*i] = ++stateIndexer;
+#ifdef LEXER_LOG
         qDebug() << "baseNumberChar" << *i << baseIdChars[*i];
+#endif
         if (*i != '.')
             fsa->AddTransition(nullTk, *i, baseNumberChars[*i]);
     }
@@ -223,8 +231,10 @@ FSALexer<TTokenId>::FSALexer(map<string, TTokenId> reservedWords, map<string, TT
     map <char, TTokenIdSuperset> baseStrChars;
     TTokenIdSuperset strStartState = stateIndexer++;
     TTokenIdSuperset strFinishState = stateIndexer++;
+#ifdef LEXER_LOG
     qDebug() << "strStart" << strStartState;
     qDebug() << "strFinish" << strFinishState;
+#endif
     fsa->AddTransition(nullTk, stringDelimiter, strStartState);
     fsa->AddTransition(strStartState, stringDelimiter, strFinishState);
     for (int c = 0; c < 0xff; ++c)
@@ -233,7 +243,9 @@ FSALexer<TTokenId>::FSALexer(map<string, TTokenId> reservedWords, map<string, TT
         {
             baseStrChars[char(c)] = ++stateIndexer;
             fsa->AddTransition(strStartState, c, baseStrChars[c]);
+#ifdef LEXER_LOG
             qDebug() << "printable '" << char(c) << "'" << baseStrChars[c];
+#endif
         }
     }
     for (auto i = baseStrChars.begin(); i != baseStrChars.end(); ++i)
@@ -260,7 +272,9 @@ typename FSALexer<TTokenId>::TTokenIdSuperset FSALexer<TTokenId>::fsaAddString(s
         if (nextState == invalidTk)
         {
             nextState = ++stateIndexer;
+#ifdef LEXER_LOG
             qDebug() << QString::fromStdString(tokenStr) << *ci << nextState;
+#endif
             fsa->AddTransition(state, *ci, nextState);
         }
         state = nextState;
@@ -346,7 +360,9 @@ int FSALexer<TTokenId>::Tokenize(istream& input, vector<Lexeme<TTokenId>>& outpu
         istream::pos_type endg = input.tellg();
         input.seekg(0, input.beg);
 
+#ifdef LEXER_LOG
         qDebug() << "Tokenize: input.tellg() =" << input.tellg();
+#endif
 
         while (input.tellg() <= endg)
         {
@@ -372,7 +388,9 @@ int FSALexer<TTokenId>::Tokenize(istream& input, vector<Lexeme<TTokenId>>& outpu
             {
                 currentStart = currentStreamPos;
                 nextTokenExpected = false;
+#ifdef LEXER_LOG
                 qDebug() << "currentStart =" << currentStart;
+#endif
             }
             // If new FSA state corresponds to a token
             if (isTokenId(fsaState))

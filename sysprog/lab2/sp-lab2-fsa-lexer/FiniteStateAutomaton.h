@@ -48,12 +48,12 @@ TState FiniteStateAutomaton<TState, TSignal>::Receive(TSignal signal)
     auto i = transition[state].find(signal);
     if (i != transition[state].end())
     {
-        qDebug() << state << "->(" << signal << ")->" << i->second;
+        //qDebug() << state << "->(" << signal << ")->" << i->second;
         state = i->second;
     }
     else
     {
-        qDebug() << state << "->(" << signal << ")-> INVALID";
+        //qDebug() << state << "->(" << signal << ")-> INVALID";
         state = invalidState;
     }
 
@@ -63,7 +63,7 @@ TState FiniteStateAutomaton<TState, TSignal>::Receive(TSignal signal)
 template <typename TState, typename TSignal>
 void FiniteStateAutomaton<TState, TSignal>::Set(TState state)
 {
-    qDebug() << "->" << state;
+    //qDebug() << "->" << state;
     this->state = state;
 }
 
