@@ -1,12 +1,27 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
     parser = new PascalParser();
+
+    syntaxNodeTypes = {
+        {PascalSyntaxNodes::PROGRAM,          "PROGRAM"},
+        {PascalSyntaxNodes::BLOCK,            "BLOCK"},
+        {PascalSyntaxNodes::IDENTIFIER,       "IDENTIFIER"},
+        {PascalSyntaxNodes::ARRAY_DECL,       "ARRAY_DECL"},
+        {PascalSyntaxNodes::VARIABLE,         "VARIABLE"},
+        {PascalSyntaxNodes::CONSTANT,         "CONSTANT"},
+        {PascalSyntaxNodes::VAR_SECTION,      "VAR_SECTION"},
+        {PascalSyntaxNodes::CONST_SECTION,    "CONST_SECTION"},
+        {PascalSyntaxNodes::NUMBER_LIT,       "NUMBER_LIT"},
+        {PascalSyntaxNodes::STRING_LIT,       "STRING_LIT"},
+        {PascalSyntaxNodes::TYPE,             "TYPE"},
+    };
 }
 
 MainWindow::~MainWindow()
@@ -25,5 +40,21 @@ void MainWindow::on_CompileBtn_clicked()
 void MainWindow::refreshSyntaxTreeView()
 {
     ui->syntaxTreeWidget->clear();
+    if (parser->SyntaxRoot())
+    {
+        QTreeWidgetItem *treeRootItem = new QTreeWidgetItem(ui->syntaxTreeWidget);
+        addSyntaxTreeNode(treeRootItem, parser->SyntaxRoot());
+    }
+}
 
+void MainWindow::addSyntaxTreeNode(QTreeWidgetItem* parent, SyntaxNode<PascalTokens>* node)
+{
+    parent->setText(0, syntaxNodeTypes[node->NodeType()]);
+    parent->setText(1, QString::fromStdString(node->Name()));
+    for (int i = 0; i < node->ChildrenCount(); ++i)
+    {
+        QTreeWidgetItem *treeItem = new QTreeWidgetItem();
+        parent->addChild(treeItem);
+        addSyntaxTreeNode(treeItem, node->GetChild(i));
+    }
 }

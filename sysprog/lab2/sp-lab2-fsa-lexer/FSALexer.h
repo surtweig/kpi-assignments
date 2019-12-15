@@ -149,7 +149,7 @@ FSALexer<TTokenId>::FSALexer(map<string, TTokenId> reservedWords, map<string, TT
         identifierChars.push_back(c);
         numberChars.push_back(c);
     }
-    numberChars.push_back('.');
+    //numberChars.push_back('.');
 
     // Adding whitespace idling
     fsa->AddTransition(nullTk, whitespace, nullTk);

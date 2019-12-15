@@ -50,13 +50,15 @@ public:
     SyntaxNode(SyntaxNode<TTokenId>* parent, PascalSyntaxNodes nType, string name)
     {
         this->parent = parent;
+        if (parent)
+            parent->AddChild(this);
         this->nType = nType;
         this->name = name;
     }
 
     SyntaxNode<TTokenId>* AddChild(SyntaxNode<TTokenId>* child)
     {
-        child->parent = this;
+        //child->parent = this;
         children.push_back(child);
         return child;
     }
@@ -69,7 +71,8 @@ public:
 
     PascalSyntaxNodes NodeType() {return nType;}
     string Name() {return name;}
-    void SetName(string newname) { name = newname; }
+    int ChildrenCount() {return children.size();}
+    SyntaxNode<TTokenId>* GetChild(int index) {return children[index];}
 };
 
 class PascalParser
@@ -138,8 +141,17 @@ public:
         tokens.clear();
         istringstream s(text);
         int result = lex->Tokenize(s, tokens);
-        currentToken = 0;
-        parseProgram();
+        if (result == 0)
+        {
+            currentToken = 0;
+            parseProgram();
+            return true;
+        }
+        else
+        {
+            error("Invalid token", tokens[tokens.size()-1]);
+            return false;
+        }
     }
 
     SyntaxNode<PascalTokens>* SyntaxRoot() {return tree;}
@@ -208,7 +220,7 @@ public:
         if (t.tokenId == PascalTokens::_begin)
         {
             SyntaxNode<PascalTokens>* blockNode =
-                    parent->AddChild(new SyntaxNode<PascalTokens>(parent, PascalSyntaxNodes::BLOCK, ""));
+                    new SyntaxNode<PascalTokens>(parent, PascalSyntaxNodes::BLOCK, "");
 
             parseStatementsList(blockNode);
             t = ConsumeToken();
@@ -225,14 +237,14 @@ public:
         if (t.tokenId == lex->IdentifierToken())
         {
             vector<SyntaxNode<PascalTokens>*> itemNodes;
-            itemNodes.push_back(parent->AddChild(new SyntaxNode<PascalTokens>(parent, PascalSyntaxNodes::VARIABLE, t.str)));
+            itemNodes.push_back(new SyntaxNode<PascalTokens>(parent, PascalSyntaxNodes::VARIABLE, t.str));
             t = ConsumeToken();
             while (t.tokenId == PascalTokens::_comma)
             {
                 t = ConsumeToken();
                 if (t.tokenId == lex->IdentifierToken())
                 {
-                    itemNodes.push_back(parent->AddChild(new SyntaxNode<PascalTokens>(parent, PascalSyntaxNodes::VARIABLE, t.str)));
+                    itemNodes.push_back(new SyntaxNode<PascalTokens>(parent, PascalSyntaxNodes::VARIABLE, t.str));
                 }
                 else
                 {
@@ -252,8 +264,8 @@ public:
                 }
                 else if (t.tokenId == PascalTokens::_array)
                 {
-                    SyntaxNode<PascalTokens>* itemsArrayDecl = parent->AddChild(
-                                new SyntaxNode<PascalTokens>(parent, PascalSyntaxNodes::ARRAY_DECL, t.str));
+                    SyntaxNode<PascalTokens>* itemsArrayDecl =
+                                new SyntaxNode<PascalTokens>(parent, PascalSyntaxNodes::ARRAY_DECL, t.str);
 
                     t = ConsumeToken();
                     if (t.tokenId == PascalTokens::_squareOpen)
@@ -367,7 +379,7 @@ public:
         {
             ConsumeToken();
             SyntaxNode<PascalTokens>* constsNode =
-                    parent->AddChild(new SyntaxNode<PascalTokens>(parent, PascalSyntaxNodes::CONST_SECTION, ""));
+                    new SyntaxNode<PascalTokens>(parent, PascalSyntaxNodes::CONST_SECTION, "");
 
             t = PeekToken();
             while (t.tokenId != PascalTokens::_var || t.tokenId != PascalTokens::_begin || t.tokenId != PascalTokens::_stop)
@@ -381,10 +393,10 @@ public:
         {
             ConsumeToken();
             SyntaxNode<PascalTokens>* varNode =
-                    parent->AddChild(new SyntaxNode<PascalTokens>(parent, PascalSyntaxNodes::VAR_SECTION, ""));
+                    new SyntaxNode<PascalTokens>(parent, PascalSyntaxNodes::VAR_SECTION, "");
 
             t = PeekToken();
-            while (t.tokenId != PascalTokens::_var || t.tokenId != PascalTokens::_begin || t.tokenId != PascalTokens::_stop)
+            while (t.tokenId != PascalTokens::_var && t.tokenId != PascalTokens::_begin && t.tokenId != PascalTokens::_stop)
             {
                 parseVarDeclaration(varNode);
                 t = PeekToken();

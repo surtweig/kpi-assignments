@@ -2,7 +2,12 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QTreeWidget>
+#include <QString>
 #include <Parser.h>
+#include <map>
+
+using namespace std;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -22,7 +27,9 @@ private slots:
 private:
     Ui::MainWindow *ui;
     PascalParser* parser;
+    map<PascalSyntaxNodes, QString> syntaxNodeTypes;
 
     void refreshSyntaxTreeView();
+    void addSyntaxTreeNode(QTreeWidgetItem* parent, SyntaxNode<PascalTokens>* node);
 };
 #endif // MAINWINDOW_H
