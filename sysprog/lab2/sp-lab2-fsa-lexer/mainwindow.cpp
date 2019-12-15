@@ -29,7 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
         { ";", _semicolon        },
         { ".", _period           },
         { "[", _squareOpen       },
-        { "]", _squareClose      }
+        { "]", _squareClose      },
     };
 
     map<string, PascalTokens> operators =
@@ -45,7 +45,8 @@ MainWindow::MainWindow(QWidget *parent)
         { "-",  _minus     },
         { "*",  _multiply  },
         { "/",  _divide    },
-        { "^",  _caret     }
+        { "^",  _caret     },
+        { ":", _colon      }
     };
 
     map<string, PascalTokens> reservedWords =
@@ -72,6 +73,8 @@ MainWindow::MainWindow(QWidget *parent)
         qDebug() << i->first << ":" << QString::fromStdString(i->second);
     }
     */
+
+    refreshTokensList();
 }
 
 MainWindow::~MainWindow()
@@ -83,11 +86,11 @@ void MainWindow::refreshTokensList()
 {
     QString t = ui->plainTextEdit->toPlainText();
     istringstream s(t.toStdString());
-    vector<pair<PascalTokens, string>> output;
-    bool result = lex->Tokenize(s, output);
+    vector<Lexeme<PascalTokens>> output;
+    int result = lex->Tokenize(s, output);
 
     ui->listWidget->clear();
-    if (result)
+    if (result == 0)
     {
         ui->listWidget->addItem("Success!");
         QBrush brush = ui->listWidget->item(0)->foreground();
@@ -102,36 +105,47 @@ void MainWindow::refreshTokensList()
         ui->listWidget->item(0)->setForeground(brush);
     }
 
-    for (auto i = output.begin(); i != output.end(); ++i)
+    if (result == 0)
     {
-        //qDebug() << i->first << ":" << QString::fromStdString(i->second);
-        QString prefix = "";
-        QString postfix = "";
-        QColor foreColor = QColor(Qt::GlobalColor::black);
-        if (i->first == lex->IdentifierToken())
+        for (auto i = output.begin(); i != output.end(); ++i)
         {
-            prefix = "id \"";
-            postfix = "\"";
+            //qDebug() << i->first << ":" << QString::fromStdString(i->second);
+            QString prefix = "";
+            QString postfix = "";
+            QColor foreColor = QColor(Qt::GlobalColor::black);
+            if (i->tokenId == lex->IdentifierToken())
+            {
+                prefix = "id \"";
+                postfix = "\"";
+            }
+            else if (i->tokenId == lex->NumberLiteralToken())
+            {
+                prefix = "num \"";
+                postfix = "\"";
+            }
+            else if (i->tokenId == lex->StringLiteralToken())
+            {
+                prefix = "str \"";
+                postfix = "\"";
+            }
+            else
+            {
+                foreColor = QColor(Qt::GlobalColor::blue);
+            }
+            ui->listWidget->addItem(prefix + QString::fromStdString(i->str) + postfix);
+            int itemIndex = ui->listWidget->count()-1;
+            QBrush brush = ui->listWidget->item(itemIndex)->foreground();
+            brush.setColor(foreColor);
+            ui->listWidget->item(itemIndex)->setForeground(brush);
         }
-        else if (i->first == lex->NumberLiteralToken())
-        {
-            prefix = "num \"";
-            postfix = "\"";
-        }
-        else if (i->first == lex->StringLiteralToken())
-        {
-            prefix = "str \"";
-            postfix = "\"";
-        }
-        else
-        {
-            foreColor = QColor(Qt::GlobalColor::blue);
-        }
-        ui->listWidget->addItem(prefix + QString::fromStdString(i->second) + postfix);
-        int itemIndex = ui->listWidget->count()-1;
-        QBrush brush = ui->listWidget->item(itemIndex)->foreground();
-        brush.setColor(foreColor);
-        ui->listWidget->item(itemIndex)->setForeground(brush);
+    }
+    else
+    {
+        ui->listWidget->addItem("Invalid token on line " + QString::number(result));
+        QBrush brush = ui->listWidget->item(1)->foreground();
+        brush.setColor(QColor(Qt::GlobalColor::red));
+        ui->listWidget->item(0)->setForeground(brush);
+        ui->listWidget->addItem(QString::fromStdString(output.at(output.size()-1).str));
     }
 }
 

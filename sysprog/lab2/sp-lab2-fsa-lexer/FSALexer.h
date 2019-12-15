@@ -13,6 +13,14 @@
 using namespace std;
 
 template <typename TTokenId>
+struct Lexeme
+{
+    TTokenId tokenId;
+    string str;
+    int lineNumber;
+};
+
+template <typename TTokenId>
 class FSALexer
 {
 public:
@@ -40,9 +48,9 @@ public:
     /// \brief Tokenize Produces a sequence of tokens from current input position to the end
     /// \param input character stream
     /// \param output sequence of tokens
-    /// \return
+    /// \return zero on success, number of line with error otherwise
     ///
-    bool Tokenize(istream& input, vector< pair<TTokenId, string> >& output);
+    int Tokenize(istream& input, vector<Lexeme<TTokenId>>& output);
 
     ///
     /// \brief GetToken returns token's string representation (if present)
@@ -157,6 +165,7 @@ FSALexer<TTokenId>::FSALexer(map<string, TTokenId> reservedWords, map<string, TT
         fsa->AddTransition(lastCharState, whitespace, i->second);
         fsa->AddTransition(lastCharState, delimitersChars, i->second);
         fsa->AddTransition(lastCharState, identifierChars, i->second);
+        fsa->AddTransition(lastCharState, stringDelimiter, i->second);
         operatorsFirstChars.push_back(i->first[0]);
     }
 
@@ -175,21 +184,25 @@ FSALexer<TTokenId>::FSALexer(map<string, TTokenId> reservedWords, map<string, TT
     stopChars.insert(stopChars.end(), operatorsFirstChars.begin(), operatorsFirstChars.end());
 
     map<char, TTokenIdSuperset> baseIdChars;
+    vector<TTokenIdSuperset> reservedWordsFirstCharStates;
     for (auto i = identifierChars.begin(); i != identifierChars.end(); ++i)
     {
         TTokenIdSuperset existingChar = fsa->GetTransition(nullTk, *i);
         if (existingChar != invalidTk)
-            baseIdChars[*i] = existingChar;
-        else
-            baseIdChars[*i] = ++stateIndexer;
+            reservedWordsFirstCharStates.push_back(existingChar);
+
+        baseIdChars[*i] = ++stateIndexer;
         qDebug() << "baseIdChar" << *i << baseIdChars[*i];
         if (*i < '0' || *i > '9')
             fsa->AddTransition(nullTk, *i, baseIdChars[*i], false);
-        //fsaIdentifierTokenTraverse(baseIdChars[*i], baseIdChars, stopChars);
     }
     for (auto i = identifierChars.begin(); i != identifierChars.end(); ++i)
     {
         fsaIdentifierTokenTraverse(baseIdChars[*i], baseIdChars, stopChars, identifierTk);
+    }
+    for (auto i = reservedWordsFirstCharStates.begin(); i != reservedWordsFirstCharStates.end(); ++i)
+    {
+        fsaIdentifierTokenTraverse(*i, baseIdChars, stopChars, identifierTk);
     }
 
     // Adding numbers
@@ -213,6 +226,7 @@ FSALexer<TTokenId>::FSALexer(map<string, TTokenId> reservedWords, map<string, TT
     qDebug() << "strStart" << strStartState;
     qDebug() << "strFinish" << strFinishState;
     fsa->AddTransition(nullTk, stringDelimiter, strStartState);
+    fsa->AddTransition(strStartState, stringDelimiter, strFinishState);
     for (int c = 0; c < 0xff; ++c)
     {
         if (isprint(c) && c != stringDelimiter)
@@ -319,10 +333,12 @@ bool FSALexer<TTokenId>::isTokenId(TTokenIdSuperset state)
 }
 
 template <typename TTokenId>
-bool FSALexer<TTokenId>::Tokenize(istream& input, vector< pair<TTokenId, string> >& output)
+int FSALexer<TTokenId>::Tokenize(istream& input, vector<Lexeme<TTokenId>>& output)
 {
     if (input)
     {
+        int lineCounter = 1;
+        istream::pos_type lastLineEnd = 0;
         fsa->Set(nullTk);
         istream::pos_type currentStart = 0;
         bool nextTokenExpected = true;
@@ -342,8 +358,14 @@ bool FSALexer<TTokenId>::Tokenize(istream& input, vector< pair<TTokenId, string>
 
             if (fsaState == invalidTk)
             {
-                output.push_back(pair<TTokenId, string>(invalidTk, readTokenStr(input, currentStart, currentStreamPos)));
-                return false;
+                output.push_back(Lexeme<TTokenId> {invalidTk, readTokenStr(input, currentStart, currentStreamPos-currentStart+1), lineCounter});
+                return lineCounter;
+            }
+
+            if (c == '\n' && lastLineEnd != currentStreamPos)
+            {
+                lineCounter++;
+                lastLineEnd = currentStreamPos;
             }
 
             if (fsaState != nullTk && nextTokenExpected)
@@ -371,12 +393,13 @@ bool FSALexer<TTokenId>::Tokenize(istream& input, vector< pair<TTokenId, string>
                     if (currentStreamPos != currentStart)
                         tkLength = currentStreamPos - currentStart;
 
-                    output.push_back(pair<TTokenId, string>(nextTk, readTokenStr(input, currentStart, tkLength)));
+                    output.push_back(Lexeme<TTokenId> {nextTk, readTokenStr(input, currentStart, tkLength), lineCounter});
 
                     //input.seekg(currentStreamPos);
 
                     fsa->Set(nullTk);
                     nextTokenExpected = true;
+
                     //currentStart = 0;
                 }
             }
@@ -384,10 +407,10 @@ bool FSALexer<TTokenId>::Tokenize(istream& input, vector< pair<TTokenId, string>
             if (c == 0 || c == char_traits<char>::eof())
                 break;
         }
-        return true;
+        return 0;
     }
     else
-        return false;
+        return -1;
 }
 
 

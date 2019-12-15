@@ -21,7 +21,7 @@ enum PascalTokens
     _type   ,_until  ,_var      ,_while     ,_with,
 
     _parenthesisOpen, _parenthesisClose, _comma, _semicolon, _period,
-    _squareOpen, _squareClose,
+    _squareOpen, _squareClose, _colon,
 
     _assign, _notEquals, _equals, _lower, _lowerEq, _greater, _greaterEq,
     _plus, _minus, _multiply, _divide, _caret

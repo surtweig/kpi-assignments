@@ -24,9 +24,7 @@
        </font>
       </property>
       <property name="plainText">
-       <string>begin
-aaaa:=bbbb;
-end.</string>
+       <string>band</string>
       </property>
      </widget>
     </item>
