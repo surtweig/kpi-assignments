@@ -207,19 +207,19 @@ size_t Database<TDBRecordData>::findSortedIndex(const DBRecordKey& key, size_t f
 
     if (first > last || last >= counter)
     {
-        qDebug() << "   InvalidAddress";
+        qDebug() << "   InvalidAddress\n";
         return InvalidAddress;
     }
 
     if (sorted[first]->key == key)
     {
-        qDebug() << "   returning first index (" << first << ") exact match";
+        qDebug() << "   returning first index (" << first << ") exact match\n";
         return first;
     }
 
     if (sorted[last]->key == key)
     {
-        qDebug() << "   returning last index (" << last << ") exact match";
+        qDebug() << "   returning last index (" << last << ") exact match\n";
         return last;
     }
 
@@ -227,12 +227,12 @@ size_t Database<TDBRecordData>::findSortedIndex(const DBRecordKey& key, size_t f
     {
         if (key < sorted[last]->Key())
         {
-            qDebug() << "   returning last(first) index (" << last << ") key < last";
+            qDebug() << "   returning last(first) index (" << last << ") key < last\n";
             return last;
         }
         if (sorted[first]->Key() < key)
         {
-            qDebug() << "   returning first(last) index (" << first << ") first < key";
+            qDebug() << "   returning first(last) index (" << first << ") first < key\n";
             return first;
         }
     }
@@ -481,6 +481,27 @@ DBRecord<TDBRecordData>* Database<TDBRecordData>::Search(const char* name)
     size_t index = findSortedIndex(key, 0, counter-1);
     if (index == InvalidAddress)
         return nullptr;
+
+    int sim0 = SimilarityStr(sorted[index]->Key().name, name);
+    int sim1 = 0;
+    int sim2 = 0;
+    if (index < counter)
+        sim1 = SimilarityStr(sorted[index+1]->Key().name, name);
+    if (index > 0)
+        sim2 = SimilarityStr(sorted[index-1]->Key().name, name);
+
+    qDebug() << "Search:" << name << "sim0" << sorted[index]->Key().name << sim0 << "\nsim1" << sorted[index+1]->Key().name << sim1 << "\n";
+
+    if (sim0 == 0 && sim1 == 0 && sim2 == 0)
+        return nullptr;
+
+    if (sim0 >= sim1 && sim0 >= sim2)
+        return sorted[index];
+    else if (sim1 > sim2)
+        return sorted[index+1];
+    else
+        return sorted[index-1];
+    /*
     if (SimilarityStr(sorted[index]->Key().name, name) > 0)
     {
         return sorted[index];
@@ -497,6 +518,7 @@ DBRecord<TDBRecordData>* Database<TDBRecordData>::Search(const char* name)
         else
             return nullptr;
     }
+    */
 }
 
 template <typename TDBRecordData>

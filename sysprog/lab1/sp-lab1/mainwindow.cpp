@@ -181,6 +181,8 @@ void MainWindow::on_SearchRecordNameEdit_textChanged(const QString &arg1)
         recordsViewList.clear();
         if (rec)
             recordsViewList.append(rec);
+
+        /*
         while (recprev != nullptr || recnext != nullptr)
         {
             recprev = db->SearchNext(recprev, -1);
@@ -190,6 +192,8 @@ void MainWindow::on_SearchRecordNameEdit_textChanged(const QString &arg1)
             if (recnext)
                 recordsViewList.append(recnext);
         }
+        */
+
         refreshDbView();
     }
 }
