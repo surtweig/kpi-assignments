@@ -63,6 +63,16 @@ end;</string>
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="tab_3">
+       <attribute name="title">
+        <string>Output</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <item>
+         <widget class="QListWidget" name="outputLogWidget"/>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
     <item>

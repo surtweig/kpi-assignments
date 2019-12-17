@@ -5,6 +5,7 @@
 #include <QTreeWidget>
 #include <QString>
 #include <Parser.h>
+#include <sstream>
 #include <map>
 
 using namespace std;
@@ -28,8 +29,10 @@ private:
     Ui::MainWindow *ui;
     PascalParser* parser;
     map<PascalSyntaxNodes, QString> syntaxNodeTypes;
+    stringstream logOutput;
 
     void refreshSyntaxTreeView();
     void addSyntaxTreeNode(QTreeWidgetItem* parent, SyntaxNode<PascalTokens>* node);
+    void refreshOutputLog();
 };
 #endif // MAINWINDOW_H

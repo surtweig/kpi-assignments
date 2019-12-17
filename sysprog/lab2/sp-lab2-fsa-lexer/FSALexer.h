@@ -378,12 +378,6 @@ int FSALexer<TTokenId>::Tokenize(istream& input, vector<Lexeme<TTokenId>>& outpu
                 return lineCounter;
             }
 
-            if (c == '\n' && lastLineEnd != currentStreamPos)
-            {
-                lineCounter++;
-                lastLineEnd = currentStreamPos;
-            }
-
             if (fsaState != nullTk && nextTokenExpected)
             {
                 currentStart = currentStreamPos;
@@ -420,6 +414,12 @@ int FSALexer<TTokenId>::Tokenize(istream& input, vector<Lexeme<TTokenId>>& outpu
 
                     //currentStart = 0;
                 }
+            }
+
+            if (c == '\n' && lastLineEnd != currentStreamPos)
+            {
+                lineCounter++;
+                lastLineEnd = currentStreamPos;
             }
 
             if (c == 0 || c == char_traits<char>::eof())

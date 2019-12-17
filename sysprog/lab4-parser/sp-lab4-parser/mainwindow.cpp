@@ -7,21 +7,31 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    parser = new PascalParser();
+    parser = new PascalParser(&logOutput);
 
     syntaxNodeTypes = {
-        {PascalSyntaxNodes::PROGRAM,          "PROGRAM"},
-        {PascalSyntaxNodes::BLOCK,            "BLOCK"},
-        {PascalSyntaxNodes::IDENTIFIER,       "IDENTIFIER"},
-        {PascalSyntaxNodes::ARRAY_DECL,       "ARRAY_DECL"},
-        {PascalSyntaxNodes::VARIABLE,         "VARIABLE"},
-        {PascalSyntaxNodes::CONSTANT,         "CONSTANT"},
-        {PascalSyntaxNodes::VAR_SECTION,      "VAR_SECTION"},
-        {PascalSyntaxNodes::CONST_SECTION,    "CONST_SECTION"},
-        {PascalSyntaxNodes::NUMBER_LIT,       "NUMBER_LIT"},
-        {PascalSyntaxNodes::STRING_LIT,       "STRING_LIT"},
-        {PascalSyntaxNodes::TYPE,             "TYPE"},
+        { PascalSyntaxNodes::PROGRAM,       "PROGRAM"       },
+        { PascalSyntaxNodes::BLOCK,         "BLOCK"         },
+        { PascalSyntaxNodes::IDENTIFIER,    "IDENTIFIER"    },
+        { PascalSyntaxNodes::ARRAY_DECL,    "ARRAY_DECL"    },
+        { PascalSyntaxNodes::VARIABLE,      "VARIABLE"      },
+        { PascalSyntaxNodes::CONSTANT,      "CONSTANT"      },
+        { PascalSyntaxNodes::VAR_SECTION,   "VAR_SECTION"   },
+        { PascalSyntaxNodes::CONST_SECTION, "CONST_SECTION" },
+        { PascalSyntaxNodes::NUMBER_LIT,    "NUMBER_LIT"    },
+        { PascalSyntaxNodes::STRING_LIT,    "STRING_LIT"    },
+        { PascalSyntaxNodes::TYPE,          "TYPE"          },
+        { PascalSyntaxNodes::STATEMENT,     "STATEMENT"     },
+        { PascalSyntaxNodes::EXPRESSION,    "EXPRESSION"    },
+        { PascalSyntaxNodes::FUNC_CALL,     "FUNC_CALL"     },
+        { PascalSyntaxNodes::FUNC_ARGUMENT, "FUNC_ARGUMENT" },
+        { PascalSyntaxNodes::OPERATOR,      "OPERATOR"      },
+        { PascalSyntaxNodes::WHILE_LOOP,    "WHILE_LOOP"    },
+        { PascalSyntaxNodes::FOR_LOOP,      "FOR_LOOP"      },
+        { PascalSyntaxNodes::IF_STATEMENT,  "IF_STATEMENT"  }
     };
+
+    ui->syntaxTreeWidget->setColumnWidth(0, 400);
 }
 
 MainWindow::~MainWindow()
@@ -30,11 +40,11 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-
 void MainWindow::on_CompileBtn_clicked()
 {
     parser->Parse(ui->plainTextEdit->toPlainText().toStdString());
     refreshSyntaxTreeView();
+    refreshOutputLog();
 }
 
 void MainWindow::refreshSyntaxTreeView()
@@ -57,4 +67,16 @@ void MainWindow::addSyntaxTreeNode(QTreeWidgetItem* parent, SyntaxNode<PascalTok
         parent->addChild(treeItem);
         addSyntaxTreeNode(treeItem, node->GetChild(i));
     }
+}
+
+void MainWindow::refreshOutputLog()
+{
+    ui->outputLogWidget->clear();
+    char c[256];
+    while (!logOutput.fail())
+    {
+        logOutput.getline(c, 256);
+        ui->outputLogWidget->addItem(QString::fromLocal8Bit(c));
+    }
+    logOutput.clear();
 }

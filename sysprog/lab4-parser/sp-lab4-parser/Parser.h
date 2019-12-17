@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 #include <iostream>
 #include <istream>
 #include <sstream>
@@ -32,8 +33,9 @@ enum PascalTokens
 
 enum PascalSyntaxNodes
 {
-    PROGRAM, BLOCK, IDENTIFIER, ARRAY_DECL, VARIABLE, CONSTANT, VAR_SECTION, CONST_SECTION,
-    NUMBER_LIT, STRING_LIT, TYPE
+    UNDEFINED, PROGRAM, BLOCK, IDENTIFIER, ARRAY_DECL, ARRAY_INDEX, VARIABLE, CONSTANT, VAR_SECTION, CONST_SECTION,
+    NUMBER_LIT, STRING_LIT, TYPE, STATEMENT, EXPRESSION, FUNC_CALL, FUNC_ARGUMENT, OPERATOR, WHILE_LOOP,
+    FOR_LOOP, IF_STATEMENT
 };
 
 template <typename TTokenId>
@@ -82,10 +84,14 @@ private:
     vector<Lexeme<PascalTokens>> tokens;
     SyntaxNode<PascalTokens>* tree;
     size_t currentToken;
+    stringstream* logOutput;
+    set<PascalTokens> exprOps;
+
 
 public:
-    PascalParser()
+    PascalParser(stringstream* logOutput = nullptr)
     {
+        this->logOutput = logOutput;
         map<string, PascalTokens> delimiters =
         {
             { "(", _parenthesisOpen  },
@@ -124,6 +130,18 @@ public:
             { "record", _record }, { "repeat", _repeat }, { "set", _set           }, { "then", _then           }, { "to", _to           },
             { "type", _type     }, { "until", _until   }, { "var", _var           }, { "while", _while         }, { "with", _with       }
         };
+
+        exprOps = { _assign,
+                    _equals,
+                    _notEquals,
+                    _lower,
+                    _lowerEq,
+                    _greater,
+                    _greaterEq,
+                    _plus,
+                    _minus,
+                    _multiply,
+                    _divide,  };
 
         lex = new FSALexer<PascalTokens>(reservedWords, operators, delimiters, '\'', "//", "{", "}");
         tree = nullptr;
@@ -185,33 +203,142 @@ public:
     void error(string msg, Lexeme<PascalTokens>& t)
     {
         qDebug() << QString::fromStdString(t.str) << "@" << t.lineNumber << ":" << QString::fromStdString(msg);
+        if (logOutput)
+            *logOutput << t.lineNumber << " : " << msg << "\n";
     }
 
     void parseStatement(SyntaxNode<PascalTokens>* blockNode)
     {
+        SyntaxNode<PascalTokens>* statementNode =
+                new SyntaxNode<PascalTokens>(blockNode, PascalSyntaxNodes::STATEMENT, "");
+
+        parseExpression(statementNode);
         Lexeme<PascalTokens> t = ConsumeToken();
-        //if (t.tokenId == lex->IdentifierToken())
+        if (t.tokenId != PascalTokens::_semicolon)
+        {
+            error("Expecting semicolon sign at the end of a statement", t);
+        }
     }
 
-    void parseStatementsList(SyntaxNode<PascalTokens>* blockNode)
+    void parseArgsList(SyntaxNode<PascalTokens>* parent)
     {
-        while (true)
+        SyntaxNode<PascalTokens>* argsListNode =
+                new SyntaxNode<PascalTokens>(parent, PascalSyntaxNodes::FUNC_CALL, "");
+
+        Lexeme<PascalTokens> t = ConsumeToken();
+        if (t.tokenId == PascalTokens::_parenthesisOpen)
         {
-            Lexeme<PascalTokens> t = PeekToken();
-            if (t.tokenId == PascalTokens::_end)
-                return;
+            t = PeekToken();
+            while (t.tokenId != PascalTokens::_parenthesisClose)
+            {
+                parseExpression(argsListNode, PascalSyntaxNodes::FUNC_ARGUMENT);
+                t = ConsumeToken();
+                if (t.tokenId == PascalTokens::_parenthesisClose)
+                    break;
+                else if (t.tokenId != PascalTokens::_comma)
+                {
+                    error("Expecting commas between arguments", t);
+                    return;
+                }
+            }
+        }
+        else
+        {
+            error("Expecting opening parenthesis at the beginning of a arguments list", t);
+            return;
+        }
+    }
 
-            if (t.tokenId == PascalTokens::_begin)
-                parseBlock(blockNode);
+    void parseExpression(SyntaxNode<PascalTokens>* parent, PascalSyntaxNodes exprType = PascalSyntaxNodes::EXPRESSION)
+    {
+        SyntaxNode<PascalTokens>* exprNode =
+                new SyntaxNode<PascalTokens>(parent, exprType, "");
 
-            if (t.tokenId == PascalTokens::_stop)
+        Lexeme<PascalTokens> t = PeekToken();
+
+        while (t.tokenId != PascalTokens::_semicolon &&
+               t.tokenId != PascalTokens::_do &&
+               t.tokenId != PascalTokens::_then)
+        {
+            t = ConsumeToken();
+            if (t.tokenId == PascalTokens::_parenthesisClose ||
+                t.tokenId == PascalTokens::_squareClose)
+            {
+                break;
+            }
+            else if (t.tokenId == PascalTokens::_stop)
             {
                 error("Unexpected end of source file", t);
                 return;
             }
+            else if (t.tokenId == PascalTokens::_parenthesisOpen)
+            {
+                parseExpression(exprNode);
+                t = ConsumeToken();
+                if (t.tokenId != PascalTokens::_parenthesisClose)
+                {
+                    error("Expecting closing parenthesis at the end of an expression", t);
+                    return;
+                }
+            }
+            else if (t.tokenId == lex->IdentifierToken())
+            {
+                SyntaxNode<PascalTokens>* idNode =
+                        new SyntaxNode<PascalTokens>(exprNode, PascalSyntaxNodes::IDENTIFIER, t.str);
+                t = PeekToken();
+                if (t.tokenId == PascalTokens::_squareOpen)
+                    parseExpression(idNode, PascalSyntaxNodes::ARRAY_INDEX);
+                else if (t.tokenId == PascalTokens::_parenthesisOpen)
+                    parseArgsList(idNode);
+            }
+            else if (t.tokenId == lex->NumberLiteralToken())
+            {
+                SyntaxNode<PascalTokens>* numNode =
+                        new SyntaxNode<PascalTokens>(exprNode, PascalSyntaxNodes::NUMBER_LIT, t.str);
+            }
+            else if (t.tokenId == lex->StringLiteralToken())
+            {
+                SyntaxNode<PascalTokens>* strNode =
+                        new SyntaxNode<PascalTokens>(exprNode, PascalSyntaxNodes::STRING_LIT, t.str);
+            }
+            else
+            {
+                error("Expecting either an identifier, a literal value or sub-expression", t);
+                return;
+            }
 
-            parseStatement(blockNode);
+            t = PeekToken();
+            if (t.tokenId == PascalTokens::_parenthesisClose ||
+                t.tokenId == PascalTokens::_squareClose ||
+                t.tokenId == PascalTokens::_comma ||
+                t.tokenId == PascalTokens::_semicolon ||
+                t.tokenId == PascalTokens::_do ||
+                t.tokenId == PascalTokens::_then)
+            {
+                break;
+            }
+            else if (exprOps.find(t.tokenId) != exprOps.end())
+            {
+                ConsumeToken();
+                SyntaxNode<PascalTokens>* opNode =
+                        new SyntaxNode<PascalTokens>(exprNode, PascalSyntaxNodes::OPERATOR, t.str);
+            }
+            else
+            {
+                error("Expecting an operator", t);
+                return;
+            }
         }
+    }
+
+    void parseIfBlock(SyntaxNode<PascalTokens>* blockNode)
+    {
+
+    }
+
+    void parseWhileBlock(SyntaxNode<PascalTokens>* blockNode)
+    {
+
     }
 
     void parseBlock(SyntaxNode<PascalTokens>* parent)
@@ -222,7 +349,42 @@ public:
             SyntaxNode<PascalTokens>* blockNode =
                     new SyntaxNode<PascalTokens>(parent, PascalSyntaxNodes::BLOCK, "");
 
-            parseStatementsList(blockNode);
+            //parseStatementsList(blockNode);
+            t = PeekToken();
+            while (t.tokenId != PascalTokens::_end)
+            {
+                if (t.tokenId == lex->IdentifierToken())
+                {
+                    parseStatement(blockNode);
+                }
+                else if (t.tokenId == PascalTokens::_if)
+                {
+                    parseIfBlock(blockNode);
+                }
+                else if (t.tokenId == PascalTokens::_repeat)
+                {
+
+                }
+                else if (t.tokenId == PascalTokens::_while)
+                {
+
+                }
+                else if (t.tokenId == PascalTokens::_for)
+                {
+
+                }
+                else if (t.tokenId == PascalTokens::_stop)
+                {
+                    error("Unexpected end of source file", t);
+                    return;
+                }
+                else
+                {
+                    error("Unexpected token", t);
+                    return;
+                }
+                t = PeekToken();
+            }
             t = ConsumeToken();
             if (t.tokenId != PascalTokens::_end)
                 error("Expected END keyword at the and of a block", t);
