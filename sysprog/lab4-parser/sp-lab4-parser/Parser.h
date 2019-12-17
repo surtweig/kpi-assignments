@@ -35,7 +35,7 @@ enum PascalSyntaxNodes
 {
     UNDEFINED, PROGRAM, BLOCK, IDENTIFIER, ARRAY_DECL, ARRAY_INDEX, VARIABLE, CONSTANT, VAR_SECTION, CONST_SECTION,
     NUMBER_LIT, STRING_LIT, TYPE, STATEMENT, EXPRESSION, FUNC_CALL, FUNC_ARGUMENT, OPERATOR, WHILE_LOOP,
-    FOR_LOOP, IF_STATEMENT
+    FOR_LOOP, IF_STATEMENT, CONDITION
 };
 
 template <typename TTokenId>
@@ -287,7 +287,16 @@ public:
                         new SyntaxNode<PascalTokens>(exprNode, PascalSyntaxNodes::IDENTIFIER, t.str);
                 t = PeekToken();
                 if (t.tokenId == PascalTokens::_squareOpen)
+                {
+                    ConsumeToken();
                     parseExpression(idNode, PascalSyntaxNodes::ARRAY_INDEX);
+                    t = ConsumeToken();
+                    if (t.tokenId != PascalTokens::_squareClose)
+                    {
+                        error("Expecting closing square at the end of array indexer", t);
+                        return;
+                    }
+                }
                 else if (t.tokenId == PascalTokens::_parenthesisOpen)
                     parseArgsList(idNode);
             }
@@ -333,12 +342,105 @@ public:
 
     void parseIfBlock(SyntaxNode<PascalTokens>* blockNode)
     {
+        Lexeme<PascalTokens> t = ConsumeToken();
+        bool expectingSemicolon = false;
+        if (t.tokenId == PascalTokens::_if)
+        {
+            SyntaxNode<PascalTokens>* ifNode =
+                    new SyntaxNode<PascalTokens>(blockNode, PascalSyntaxNodes::IF_STATEMENT, "");
 
+            parseExpression(ifNode, PascalSyntaxNodes::CONDITION);
+
+            t = ConsumeToken();
+            if (t.tokenId == PascalTokens::_then)
+            {
+                t = PeekToken();
+                if (t.tokenId == PascalTokens::_begin)
+                {
+                    parseBlock(ifNode);
+                    expectingSemicolon = true;
+                }
+                else
+                    parseStatement(ifNode);
+            }
+            else
+            {
+                error("Expecting THEN keyword", t);
+                return;
+            }
+
+            t = PeekToken();
+            if (t.tokenId == PascalTokens::_else)
+            {
+                ConsumeToken();
+                t = PeekToken();
+                if (t.tokenId == PascalTokens::_if)
+                    parseIfBlock(ifNode);
+                else if (t.tokenId == PascalTokens::_begin)
+                {
+                    parseBlock(ifNode);
+                    t = ConsumeToken();
+                    if (t.tokenId != PascalTokens::_semicolon)
+                    {
+                        error("Expecing semicolon at the end of IF statement", t);
+                        return;
+                    }
+                }
+                else
+                    parseStatement(ifNode);
+            }
+            else if (expectingSemicolon)
+            {
+                if (t.tokenId == PascalTokens::_semicolon)
+                    ConsumeToken();
+                else
+                    error("Expecing semicolon at the end of IF statement", t);
+            }
+        }
+        else
+        {
+            error("Expecting IF keyword", t);
+            return;
+        }
     }
 
     void parseWhileBlock(SyntaxNode<PascalTokens>* blockNode)
     {
+        Lexeme<PascalTokens> t = ConsumeToken();
+        if (t.tokenId == PascalTokens::_while)
+        {
+            SyntaxNode<PascalTokens>* whileNode =
+                    new SyntaxNode<PascalTokens>(blockNode, PascalSyntaxNodes::WHILE_LOOP, "");
 
+            parseExpression(whileNode, PascalSyntaxNodes::CONDITION);
+
+            t = ConsumeToken();
+            if (t.tokenId == PascalTokens::_do)
+            {
+                if (PeekToken().tokenId == PascalTokens::_begin)
+                {
+                    parseBlock(whileNode);
+                    t = ConsumeToken();
+                    if (t.tokenId != PascalTokens::_semicolon)
+                    {
+                        error("Expecting a semicolon sign after WHILE loop", t);
+                        return;
+                    }
+                }
+                else
+                    parseStatement(whileNode);
+            }
+            else
+            {
+                error("Expecting DO keyword", t);
+                return;
+            }
+        }
+        else
+        {
+            error("Expecting WHILE keyword", t);
+            return;
+        }
     }
 
     void parseBlock(SyntaxNode<PascalTokens>* parent)
@@ -363,11 +465,10 @@ public:
                 }
                 else if (t.tokenId == PascalTokens::_repeat)
                 {
-
                 }
                 else if (t.tokenId == PascalTokens::_while)
                 {
-
+                    parseWhileBlock(blockNode);
                 }
                 else if (t.tokenId == PascalTokens::_for)
                 {
@@ -380,7 +481,7 @@ public:
                 }
                 else
                 {
-                    error("Unexpected token", t);
+                    error("Unexpected token in a block", t);
                     return;
                 }
                 t = PeekToken();

@@ -28,7 +28,9 @@ MainWindow::MainWindow(QWidget *parent)
         { PascalSyntaxNodes::OPERATOR,      "OPERATOR"      },
         { PascalSyntaxNodes::WHILE_LOOP,    "WHILE_LOOP"    },
         { PascalSyntaxNodes::FOR_LOOP,      "FOR_LOOP"      },
-        { PascalSyntaxNodes::IF_STATEMENT,  "IF_STATEMENT"  }
+        { PascalSyntaxNodes::IF_STATEMENT,  "IF_STATEMENT"  },
+        { PascalSyntaxNodes::CONDITION,     "CONDITION"     },
+        { PascalSyntaxNodes::ARRAY_INDEX,   "ARRAY_INDEX"   }
     };
 
     ui->syntaxTreeWidget->setColumnWidth(0, 400);

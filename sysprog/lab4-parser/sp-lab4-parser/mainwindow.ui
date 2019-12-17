@@ -34,8 +34,23 @@
            </font>
           </property>
           <property name="plainText">
-           <string>program Zuzu;
+           <string>program Test;
+var
+   n : integer;
+   b : integer;
+   a : array[1..10] of integer;
+
 begin
+
+n:= 10;
+while n&lt;&gt;0 do begin 
+n:=n-1;
+b:=b+a[n];
+end;
+
+if b &lt;&gt; 10 then
+print('aaaaa');
+
 end;</string>
           </property>
          </widget>
