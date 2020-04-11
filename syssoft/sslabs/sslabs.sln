@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29709.97
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "memalloc1", "memalloc1\memalloc1.vcxproj", "{DE326497-CCD2-4B5D-9B7C-7C1002013329}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{2D63E3FD-A4A4-4829-9268-1328DB2B6958}"
+	ProjectSection(SolutionItems) = preProject
+		massert.h = massert.h
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DE326497-CCD2-4B5D-9B7C-7C1002013329}.Debug|x64.ActiveCfg = Debug|x64
+		{DE326497-CCD2-4B5D-9B7C-7C1002013329}.Debug|x64.Build.0 = Debug|x64
+		{DE326497-CCD2-4B5D-9B7C-7C1002013329}.Debug|x86.ActiveCfg = Debug|Win32
+		{DE326497-CCD2-4B5D-9B7C-7C1002013329}.Debug|x86.Build.0 = Debug|Win32
+		{DE326497-CCD2-4B5D-9B7C-7C1002013329}.Release|x64.ActiveCfg = Release|x64
+		{DE326497-CCD2-4B5D-9B7C-7C1002013329}.Release|x64.Build.0 = Release|x64
+		{DE326497-CCD2-4B5D-9B7C-7C1002013329}.Release|x86.ActiveCfg = Release|Win32
+		{DE326497-CCD2-4B5D-9B7C-7C1002013329}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {062F3152-099A-4750-9528-BAA0B91234EE}
+	EndGlobalSection
+EndGlobal
