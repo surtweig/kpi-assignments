@@ -26,6 +26,8 @@ private:
     size_t pageSize;
     void* pages[ALLOCATOR_MAX_PAGES];
 
+    static size_t alignedSize(size_t size) { return ((size - 1) / ALLOCATOR_ALIGNMENT + 1) * ALLOCATOR_ALIGNMENT; }
+
     void initPages();
     void destroyPages();
 

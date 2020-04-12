@@ -5,7 +5,7 @@
 Allocator::Allocator(size_t pageSize)
 {
     // Actual page size will be nearest bigger multiple of ALLOCATOR_ALIGNMENT
-    this->pageSize = ((pageSize-1) / ALLOCATOR_ALIGNMENT + 1) * ALLOCATOR_ALIGNMENT;
+    this->pageSize = alignedSize(pageSize);
     assert(this->pageSize >= 2*ALLOCATOR_BLOCK_HEADER_SIZE);
     
     initPages();
@@ -18,6 +18,8 @@ Allocator::~Allocator()
 
 void* Allocator::mem_alloc(size_t size)
 {
+    size = alignedSize(size);
+
     if (size == 0)
         return nullptr;
     // upper limit for data size
@@ -41,11 +43,168 @@ void* Allocator::mem_alloc(size_t size)
 
 void* Allocator::mem_realloc(void* addr, size_t size)
 {
-    return nullptr;
+    size = alignedSize(size);
+    if (size == 0)
+    {
+        //mem_free(addr);
+        return nullptr;
+    }
+    if (size > pageSize - 2 * ALLOCATOR_BLOCK_HEADER_SIZE)
+        return nullptr;
+
+    bool free;
+    size_t nextOffset;
+    size_t prevOffset;
+    readBlockHeader(addr, free, nextOffset, prevOffset);
+    size_t currentSize = nextOffset - ALLOCATOR_BLOCK_HEADER_SIZE;
+    
+    if (currentSize == size) // New size is the same
+        return addr;
+    else if (currentSize > size) // Shrink
+    {
+        size_t freedSize = currentSize - size;
+        if (freedSize <= ALLOCATOR_BLOCK_HEADER_SIZE) // Ignore shrink request if freed space couldn't contain minimal block
+            return nullptr;
+
+        void* nextBlock = getNextBlock(addr);
+        size_t newNextOffset = nextOffset - freedSize;
+        
+        setBlockNextOffset(addr, newNextOffset); // Shrinking given block
+        
+        void* freedBlock = (void*)((size_t)addr + newNextOffset);
+        writeBlockHeader(freedBlock, true, freedSize, newNextOffset); // Creating new block from freed memory
+        
+        setBlockPrevOffset(nextBlock, freedSize); // Notifying next block that it has new neighbour
+        if (getBlockState(nextBlock)) 
+            mergeAdjacentBlocks(freedBlock, nextBlock); // Merging new and next block if the next block is free
+        
+        return addr;
+    }
+    else // Extend
+    {
+        void* nextBlock = getNextBlock(addr);
+        bool nextFree;
+        size_t nextNextOffset;
+        size_t nextPrevOffset;
+        readBlockHeader(nextBlock, nextFree, nextNextOffset, nextPrevOffset);
+
+        void* prevBlock = getPrevBlock(addr);
+        bool prevFree = false;
+        size_t prevNextOffset;
+        size_t prevPrevOffset;
+        if (prevBlock)
+            readBlockHeader(prevBlock, prevFree, prevNextOffset, prevPrevOffset);
+
+        void* blockAfterNext = getNextBlock(nextBlock);
+
+        if (nextFree && nextNextOffset >= size - currentSize) // Next block is free and has enough space
+        {
+            size_t newNextOffset = size + ALLOCATOR_BLOCK_HEADER_SIZE;
+            size_t newNextNextOffset = nextNextOffset - size + currentSize;
+            if (newNextNextOffset <= ALLOCATOR_BLOCK_HEADER_SIZE)
+            {
+                newNextOffset += newNextNextOffset;
+                newNextNextOffset = 0;
+                if (blockAfterNext)
+                    setBlockPrevOffset(blockAfterNext, newNextOffset);
+            }
+            else
+            {
+                writeBlockHeader((void*)((size_t)addr + newNextOffset), true, newNextNextOffset, newNextOffset);
+                if (blockAfterNext)
+                    setBlockPrevOffset(blockAfterNext, newNextNextOffset);
+            }
+            setBlockNextOffset(addr, newNextOffset);
+            return addr;
+        }
+        else if (prevFree && prevNextOffset >= size - currentSize) // Prev block is free and has enough space
+        {
+            size_t newNextOffset = size + ALLOCATOR_BLOCK_HEADER_SIZE;
+            memmove(prevBlock, addr, currentSize);
+            writeBlockHeader(prevBlock, false, newNextOffset, prevPrevOffset);
+            void* newBlock = (void*)((size_t)prevBlock + newNextOffset);
+            size_t newBlockNextOffset = prevNextOffset + currentSize + ALLOCATOR_BLOCK_HEADER_SIZE - newNextOffset;
+            writeBlockHeader(newBlock, true, newBlockNextOffset, newNextOffset);
+            setBlockPrevOffset(nextBlock, newBlockNextOffset);
+            return prevBlock;
+        }
+        else if (prevFree && nextFree) // Both neighbours are free, but neither have enough space by themselves
+        {
+            if (prevNextOffset + currentSize + nextNextOffset >= size)
+            {
+                size_t newNextOffset = size + ALLOCATOR_BLOCK_HEADER_SIZE;
+                memmove(prevBlock, addr, currentSize);
+                
+                size_t newNextNextOffset = (size_t)blockAfterNext - (size_t)prevBlock - newNextOffset;
+                if (newNextNextOffset <= ALLOCATOR_BLOCK_HEADER_SIZE)
+                {
+                    newNextNextOffset = 0;
+                    newNextOffset += newNextNextOffset;
+                    setBlockPrevOffset(blockAfterNext, newNextOffset);
+                }
+                else
+                {
+                    writeBlockHeader((void*)((size_t)prevBlock + newNextOffset), true, newNextNextOffset, newNextOffset);
+                    setBlockPrevOffset(blockAfterNext, newNextNextOffset);
+                }
+
+                writeBlockHeader(prevBlock, false, newNextOffset, prevPrevOffset);
+                return prevBlock;
+            }
+        }
+        
+        // Moving in neighborhood didn't work, falling back to simple reallocation
+        void* newAddr = mem_alloc(size);
+        if (newAddr)
+        {
+            memmove(newAddr, addr, size);
+            mem_free(addr);
+            return newAddr;
+        }
+        else
+            return nullptr; // Fail
+    }
 }
 
 void Allocator::mem_free(void* addr)
 {
+    size_t memAddr = (size_t)addr;
+    for (int i = 0; i < ALLOCATOR_MAX_PAGES; ++i)
+    {
+        if (pages[i])
+        {
+            if (memAddr >= (size_t)pages[i] && memAddr < (size_t)pages[i] + pageSize)
+            {
+                void* block = pages[i];
+                while (block)
+                {
+                    if (addr == block)
+                    {
+                        setBlockState(block, true);
+                        void* prevBlock = getPrevBlock(block);
+                        void* nextBlock = getNextBlock(block);
+                        bool nextFree = getBlockState(nextBlock);
+                        if (prevBlock)
+                        {
+                            bool prevFree = getBlockState(prevBlock);
+                            if (prevFree && nextFree)
+                                mergeBlocks(prevBlock, nextBlock);
+                            else if (prevFree)
+                                mergeAdjacentBlocks(prevBlock, block);
+                            else if (nextFree)
+                                mergeAdjacentBlocks(block, nextBlock);
+                        }
+                        else if (nextFree)
+                            mergeAdjacentBlocks(block, nextBlock);
+
+                        return;
+                    }
+                    block = getNextBlock(block);
+                    assert((size_t)block - (size_t)pages[i] < pageSize);
+                }
+            }
+        }
+    }
 }
 
 void Allocator::mem_dump(std::ostream& log)
@@ -71,7 +230,7 @@ void Allocator::mem_dump(std::ostream& log)
                     size = 0;
 
                 log << "    Block " << std::dec << blockCounter << " at " << std::hex << (size_t)block
-                    << ": [ " << (free ? "Free" : "Reserved") << ", Next=" << nextOffset << ", Prev=" << prevOffset << " ] "
+                    << ": [ " << (free ? "Free" : "Reserved") << std::dec << ", Next=" << nextOffset << ", Prev=" << prevOffset << " ] "
                     << std::dec << size << " Bytes.\n";
                 block = getNextBlock(block);
                 ++blockCounter;
@@ -355,5 +514,5 @@ void Allocator::mergeAdjacentBlocks(void* firstBlock, void* secondBlock)
     void* nextBlock = (void*)((size_t)secondBlock + secondNextOffset);
     size_t newNextOffset = firstNextOffset + secondNextOffset;
     writeBlockHeader(firstBlock, true, newNextOffset, firstPrevOffset);
-    setBlockPrevOffset(nextBlock, firstNextOffset + newNextOffset);
+    setBlockPrevOffset(nextBlock, newNextOffset);
 }
