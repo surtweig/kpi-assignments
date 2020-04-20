@@ -6,19 +6,43 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="26dp"
+        android:text="P="
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        app:layout_constraintEnd_toStartOf="@+id/ThresholdEdit"
+        app:layout_constraintStart_toEndOf="@+id/IterationsCountEdit"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="26dp"
+        android:text="N="
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        app:layout_constraintEnd_toStartOf="@+id/IterationsCountEdit"
+        app:layout_constraintStart_toEndOf="@+id/LearningRateEdit"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <EditText
         android:id="@+id/LearningRateEdit"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="8dp"
         android:ems="10"
         android:hint="Learning rate"
         android:inputType="numberSigned"
         android:singleLine="true"
-        app:layout_constraintEnd_toStartOf="@+id/IterationsCountEdit"
-        app:layout_constraintStart_toStartOf="parent"
+        android:text="0.1"
+        app:layout_constraintEnd_toStartOf="@+id/textView3"
+        app:layout_constraintStart_toEndOf="@+id/textView"
         app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
@@ -26,12 +50,14 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="8dp"
         android:ems="10"
-        android:hint="Iterations count"
+        android:hint="Iterations"
         android:inputType="numberSigned"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/LearningRateEdit"
+        android:singleLine="true"
+        android:text="100"
+        app:layout_constraintEnd_toStartOf="@+id/textView4"
+        app:layout_constraintStart_toEndOf="@+id/textView3"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
@@ -40,21 +66,20 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="8dp"
         android:onClick="onStartClick"
         android:text="Start"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/AutoCheckBox"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/LearningRateEdit" />
 
     <TextView
-        android:id="@+id/textView2"
+        android:id="@+id/LearnResultText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:text="TextView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/button" />
@@ -63,7 +88,10 @@
         android:id="@+id/spaceView"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -80,7 +108,7 @@
         android:text="Add Pos"
         app:layout_constraintEnd_toStartOf="@+id/button3"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView2" />
+        app:layout_constraintTop_toBottomOf="@+id/LearnResultText" />
 
     <Button
         android:id="@+id/button3"
@@ -93,7 +121,7 @@
         android:text="Add Neg"
         app:layout_constraintEnd_toStartOf="@+id/button4"
         app:layout_constraintStart_toEndOf="@+id/button2"
-        app:layout_constraintTop_toBottomOf="@+id/textView2" />
+        app:layout_constraintTop_toBottomOf="@+id/LearnResultText" />
 
     <Button
         android:id="@+id/button4"
@@ -106,6 +134,48 @@
         android:text="Clear"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/button3"
-        app:layout_constraintTop_toBottomOf="@+id/textView2" />
+        app:layout_constraintTop_toBottomOf="@+id/LearnResultText" />
+
+    <EditText
+        android:id="@+id/ThresholdEdit"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:ems="10"
+        android:hint="Threshold"
+        android:inputType="number"
+        android:singleLine="true"
+        android:text="4"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/textView4"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="26dp"
+        android:text="δ="
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        app:layout_constraintEnd_toStartOf="@+id/LearningRateEdit"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <CheckBox
+        android:id="@+id/AutoCheckBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:onClick="onAutoClick"
+        android:text="Auto "
+        app:layout_constraintBottom_toTopOf="@+id/LearnResultText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/button"
+        app:layout_constraintTop_toBottomOf="@+id/ThresholdEdit" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

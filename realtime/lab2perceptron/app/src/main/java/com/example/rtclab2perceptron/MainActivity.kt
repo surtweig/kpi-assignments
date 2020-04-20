@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.View
 import android.view.View.SYSTEM_UI_FLAG_FULLSCREEN
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
 
@@ -27,6 +28,12 @@ class MainActivity : AppCompatActivity() {
         setContentView(myCanvasView)
         */
 
+        spaceView.AddPoint(1f, 5f, 1, false)
+        spaceView.AddPoint(2f, 4f, 0, false)
+    }
+
+    public fun onAutoClick(v: View?) {
+        spaceView.AutoRedraw = AutoCheckBox.isChecked
     }
 
     public fun onStartClick(v: View?) {
@@ -36,18 +43,25 @@ class MainActivity : AppCompatActivity() {
         spaceView.AddPoint(300f, 300f, 1)
         spaceView.AddPoint(100f, 300f, 1)
         */
+        spaceView.Sigma = LearningRateEdit.text.toString().toFloat()
+        spaceView.Iters = IterationsCountEdit.text.toString().toInt()
+        spaceView.P = ThresholdEdit.text.toString().toFloat()
+        spaceView.startLearning()
+        LearnResultText.setText("W=(%.2f, %.2f)".format(spaceView.Weight.posX, spaceView.Weight.posY))
     }
 
     public fun onAddPosClick(v: View?) {
         val h = spaceView.height
         val w = spaceView.width
-        spaceView.AddPoint(w*0.5f, h*0.5f, 1)
+        spaceView.AddPoint(Random.nextFloat()*spaceView.spaceWidth*0.8f+0.1f,
+                           Random.nextFloat()*spaceView.spaceHeight*0.8f+0.1f, 1)
     }
 
     public fun onAddNegClick(v: View?) {
         val h = spaceView.height
         val w = spaceView.width
-        spaceView.AddPoint(w*0.5f, h*0.5f, 0)
+        spaceView.AddPoint(Random.nextFloat()*spaceView.spaceWidth*0.8f+0.1f,
+            Random.nextFloat()*spaceView.spaceHeight*0.8f+0.1f, 0)
     }
 
     public fun onClearClick(v: View?) {
