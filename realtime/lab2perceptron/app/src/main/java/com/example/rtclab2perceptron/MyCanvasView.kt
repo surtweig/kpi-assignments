@@ -85,6 +85,7 @@ class MyCanvasView(context: Context, attrs: AttributeSet) : View(context, attrs)
     public var Sigma: Float = 0.1f
     public var Iters: Int = 100
     public var Weight: Point = Point(0f, 0f, 0)
+    public var LearnDuration: Long = 0
 
     private fun perceptf(inp: Point): Float {
         val dot = inp.posX*Weight.posX + inp.posY*Weight.posY
@@ -104,11 +105,13 @@ class MyCanvasView(context: Context, attrs: AttributeSet) : View(context, attrs)
 
     public fun startLearning() {
         Weight = Point(0f, 0f, 0)
+        val learnStartTimestamp = System.currentTimeMillis()
         for (i in 1..Iters) {
             for (p in points.iterator()) {
                 learnStep(p)
             }
         }
+        LearnDuration = System.currentTimeMillis() - learnStartTimestamp
         invalidate()
     }
 

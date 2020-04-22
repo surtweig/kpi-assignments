@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity() {
         spaceView.Iters = IterationsCountEdit.text.toString().toInt()
         spaceView.P = ThresholdEdit.text.toString().toFloat()
         spaceView.startLearning()
-        LearnResultText.setText("W=(%.2f, %.2f)".format(spaceView.Weight.posX, spaceView.Weight.posY))
+        LearnResultText.setText("W=(%.2f, %.2f)   Time=%dms".format(spaceView.Weight.posX, spaceView.Weight.posY, spaceView.LearnDuration))
     }
 
     public fun onAddPosClick(v: View?) {
