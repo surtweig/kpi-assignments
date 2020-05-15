@@ -62,6 +62,11 @@ private:
     BlockMetadata getParent(const BlockMetadata&);
     BlockMetadata getFirstBlockLevel(size_t level);
     BlockMetadata getNextBlockLevel(const BlockMetadata&);
+    BlockMetadata getBlockAtAddr(void* addr);
+    
+    void ascend(const BlockMetadata& block, bool val);
+    void descend(const BlockMetadata& block, bool val);
+    
     bool acquire(const BlockMetadata&);
     bool release(const BlockMetadata&);
 

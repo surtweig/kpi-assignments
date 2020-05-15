@@ -2,10 +2,19 @@
 //
 
 #include <iostream>
+#include "BuddyAllocator.h"
 
 int main()
 {
     std::cout << "Hello World!\n";
+
+    BuddyAllocator* allocator = new BuddyAllocator(4, 4);
+    
+    void* p1 = allocator->mem_alloc(5);
+    allocator->mem_free(p1);
+    allocator->mem_dump(std::cout);
+
+    delete allocator;
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

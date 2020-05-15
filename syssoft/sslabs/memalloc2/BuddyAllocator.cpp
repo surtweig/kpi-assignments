@@ -42,7 +42,7 @@ void* BuddyAllocator::mem_alloc(size_t size)
 
 void* BuddyAllocator::mem_realloc(void* addr, size_t size)
 {
-
+    return nullptr;
 }
 
 void BuddyAllocator::mem_free(void* addr)
@@ -57,9 +57,21 @@ void BuddyAllocator::mem_free(void* addr)
     }
 }
 
-void BuddyAllocator::mem_dump(std::ostream& log)
+void BuddyAllocator::mem_dump(ostream& log)
 {
-
+    for (size_t level = 0; level <= maxLevel; ++level)
+    {
+        log << "Level " << dec << level << " blocks " << getLevelBlockSize(level) << " bytes : ";
+        BlockMetadata block = getFirstBlockLevel(level);
+        while (block.data)
+        {
+            log << "[" << dec << block.tocIndex << (isFree(block) ? " (-) " : " (+) ")
+                << "at 0x" << hex << (size_t)block.data - (size_t)buffer << "] ";
+                
+            block = getNextBlockLevel(block);
+        }
+        log << endl;
+    }
 }
 
 BuddyAllocator::BlockMetadata BuddyAllocator::getBlockAtAddr(void* addr)
@@ -214,6 +226,46 @@ BuddyAllocator::BlockMetadata BuddyAllocator::getNextBlockLevel(const BlockMetad
     return BlockMetadata();
 }
 
+void BuddyAllocator::ascend(const BlockMetadata& block, bool val)
+{
+    assert(block.data);
+
+    if (!val)
+    {
+        BlockMetadata leftChild = getLeftChild(block);
+        BlockMetadata rightChild = getRightBuddy(leftChild);
+
+        if (isFree(leftChild) && isFree(rightChild))
+        {
+            toc[block.tocIndex] = val;
+            if (block.level > 0)
+                ascend(getParent(block), val);
+        }
+    }
+    else
+    {
+        toc[block.tocIndex] = val;
+        if (block.level > 0)
+            ascend(getParent(block), val);
+    }
+
+}
+
+void BuddyAllocator::descend(const BlockMetadata& block, bool val)
+{
+    assert(block.data);
+
+    toc[block.tocIndex] = val;
+    if (block.level < maxLevel)
+    {
+        BlockMetadata leftChild = getLeftChild(block);
+        BlockMetadata rightChild = getRightBuddy(leftChild);
+        descend(leftChild, val);
+        descend(rightChild, val);
+    }
+}
+
+
 bool BuddyAllocator::acquire(const BlockMetadata& block)
 {
     assert(block.data);
@@ -222,11 +274,17 @@ bool BuddyAllocator::acquire(const BlockMetadata& block)
     if (!isFree(block))
         return false;
 
+    /*
     // acquire parent
     if (block.level > 0)
         acquire(getParent(block));
 
+    BlockMetadata leftChild = getLeftChild(block);
+    BlockMetadata rightChild = getRightBuddy(block);
     toc[block.tocIndex] = true;
+    */
+    ascend(block, true);
+    descend(block, true);
     return true;
 }
 
@@ -237,6 +295,10 @@ bool BuddyAllocator::release(const BlockMetadata& block)
     if (isFree(block))
         return false;
 
+    
+    descend(block, false);
+    return true;
+    /*
     BlockMetadata leftChild = getLeftChild(block);
     BlockMetadata rightChild = getRightBuddy(leftChild);
     if (isFree(leftChild) && isFree(rightChild))
@@ -253,6 +315,7 @@ bool BuddyAllocator::release(const BlockMetadata& block)
         return rlsParent;
     }
     return false;
+    */
 }
 
 
