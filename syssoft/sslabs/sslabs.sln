@@ -10,6 +10,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{2D63
 		massert.h = massert.h
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "memalloc2", "memalloc2\memalloc2.vcxproj", "{611C7079-378F-42C7-89F6-86A54C718E80}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -26,6 +28,14 @@ Global
 		{DE326497-CCD2-4B5D-9B7C-7C1002013329}.Release|x64.Build.0 = Release|x64
 		{DE326497-CCD2-4B5D-9B7C-7C1002013329}.Release|x86.ActiveCfg = Release|Win32
 		{DE326497-CCD2-4B5D-9B7C-7C1002013329}.Release|x86.Build.0 = Release|Win32
+		{611C7079-378F-42C7-89F6-86A54C718E80}.Debug|x64.ActiveCfg = Debug|x64
+		{611C7079-378F-42C7-89F6-86A54C718E80}.Debug|x64.Build.0 = Debug|x64
+		{611C7079-378F-42C7-89F6-86A54C718E80}.Debug|x86.ActiveCfg = Debug|Win32
+		{611C7079-378F-42C7-89F6-86A54C718E80}.Debug|x86.Build.0 = Debug|Win32
+		{611C7079-378F-42C7-89F6-86A54C718E80}.Release|x64.ActiveCfg = Release|x64
+		{611C7079-378F-42C7-89F6-86A54C718E80}.Release|x64.Build.0 = Release|x64
+		{611C7079-378F-42C7-89F6-86A54C718E80}.Release|x86.ActiveCfg = Release|Win32
+		{611C7079-378F-42C7-89F6-86A54C718E80}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
