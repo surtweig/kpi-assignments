@@ -1,5 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "fifoexp.h"
+
 #define RND(Low, High) qrand() % ((High + 1) - Low) + Low
 
 MainWindow::MainWindow(QWidget *parent)
@@ -8,24 +10,41 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     qsd = new QueueSystemDraw(ui->DrawWidget);
-    scheduler = new Scheduler(qsd);
+    //scheduler = new Scheduler(qsd);
     initSim();
     drawTimer = new QTimer(this);
     connect(drawTimer, SIGNAL(timeout()), this, SLOT(UpdateSim()));
     drawTimer->start(15);
+    simRunning = false;
+
+    experiment = new FIFOExp(qsd, 0, 0.0035, 10, 1, 100);
+    experiment->setupScheduler();
+    experiment->setupDraw();
 }
 
 void MainWindow::UpdateSim()
 {
-    scheduler->Tick();
+    //const int completeQueueMaxVisible = 10;
+
+    //scheduler->Tick();
     qsd->update();
+    if (experiment != nullptr && simRunning)
+        experiment->onUpdate();
+
+    /*
+    int complete = scheduler->GetQueueSize(Scheduler::CompleteQueueName);
+    if (complete > completeQueueMaxVisible)
+    {
+        qsd->SetQueuePosition(Scheduler::CompleteQueueName, QPointF(20 - (complete-completeQueueMaxVisible)*18, 360));
+    }
+    */
 }
 
 void MainWindow::initSim()
 {
-    qsd->AddQueue(Scheduler::IncomingQueueName, QPoint(20, 20), QSize(0, 36));
-    qsd->AddQueue(Scheduler::CPUQueueName, QPoint(200, 200), QSize(0, 36));
-    qsd->AddQueue(Scheduler::CompleteQueueName, QPoint(400, 20), QSize(0, 8));
+    //qsd->AddQueue(Scheduler::IncomingQueueName, QPoint(20, 120), QSize(2, 0));
+    //qsd->AddQueue(Scheduler::CPUQueueName, QPoint(200, 240), QSize(2, 0));
+    //qsd->AddQueue(Scheduler::CompleteQueueName, QPoint(20, 360), QSize(2, 0));
     /*
     qsd->AddQueue("queue1", QPoint(20, 20), QSize(0, 36));
     qsd->AddQueue("queue2", QPoint(200, 20), QSize(0, 36));
@@ -45,8 +64,10 @@ void MainWindow::initSim()
 
 void MainWindow::generateRandomTask()
 {
-    Task task = Task(RND(1, 100), Task::Priority::TPNormal);
+    /*
+    Task task = Task(RND(10, 100), Task::Priority::TPNormal);
     scheduler->AcceptTask(task);
+    */
 }
 
 MainWindow::~MainWindow()
@@ -60,4 +81,21 @@ MainWindow::~MainWindow()
 void MainWindow::on_CreateTaskBtn_clicked()
 {
     generateRandomTask();
+}
+
+void MainWindow::on_StartStopBtn_clicked()
+{
+    simRunning = !simRunning;
+    if (simRunning)
+        ui->StartStopBtn->setText("Stop");
+    else
+        ui->StartStopBtn->setText("Start");
+}
+
+void MainWindow::on_comboBox_currentIndexChanged(const QString &arg1)
+{
+    if (arg1 == "FIFO")
+    {
+
+    }
 }

@@ -11,11 +11,12 @@
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
-#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QComboBox>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QStatusBar>
+#include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
 QT_BEGIN_NAMESPACE
@@ -24,10 +25,11 @@ class Ui_MainWindow
 {
 public:
     QWidget *centralwidget;
-    QHBoxLayout *horizontalLayout;
+    QVBoxLayout *verticalLayout;
     QWidget *DrawWidget;
     QWidget *widget_2;
-    QPushButton *CreateTaskBtn;
+    QComboBox *comboBox;
+    QPushButton *StartStopBtn;
     QMenuBar *menubar;
     QStatusBar *statusbar;
 
@@ -38,21 +40,31 @@ public:
         MainWindow->resize(1225, 736);
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
-        horizontalLayout = new QHBoxLayout(centralwidget);
-        horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
+        verticalLayout = new QVBoxLayout(centralwidget);
+        verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
         DrawWidget = new QWidget(centralwidget);
         DrawWidget->setObjectName(QString::fromUtf8("DrawWidget"));
 
-        horizontalLayout->addWidget(DrawWidget);
+        verticalLayout->addWidget(DrawWidget);
 
         widget_2 = new QWidget(centralwidget);
         widget_2->setObjectName(QString::fromUtf8("widget_2"));
-        widget_2->setMaximumSize(QSize(300, 16777215));
-        CreateTaskBtn = new QPushButton(widget_2);
-        CreateTaskBtn->setObjectName(QString::fromUtf8("CreateTaskBtn"));
-        CreateTaskBtn->setGeometry(QRect(30, 30, 151, 25));
+        widget_2->setMaximumSize(QSize(16777215, 100));
+        comboBox = new QComboBox(widget_2);
+        comboBox->addItem(QString());
+        comboBox->addItem(QString());
+        comboBox->addItem(QString());
+        comboBox->addItem(QString());
+        comboBox->addItem(QString());
+        comboBox->addItem(QString());
+        comboBox->addItem(QString());
+        comboBox->setObjectName(QString::fromUtf8("comboBox"));
+        comboBox->setGeometry(QRect(20, 20, 221, 24));
+        StartStopBtn = new QPushButton(widget_2);
+        StartStopBtn->setObjectName(QString::fromUtf8("StartStopBtn"));
+        StartStopBtn->setGeometry(QRect(250, 20, 80, 25));
 
-        horizontalLayout->addWidget(widget_2);
+        verticalLayout->addWidget(widget_2);
 
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
@@ -71,7 +83,15 @@ public:
     void retranslateUi(QMainWindow *MainWindow)
     {
         MainWindow->setWindowTitle(QCoreApplication::translate("MainWindow", "MainWindow", nullptr));
-        CreateTaskBtn->setText(QCoreApplication::translate("MainWindow", "New random task", nullptr));
+        comboBox->setItemText(0, QCoreApplication::translate("MainWindow", "FIFO", nullptr));
+        comboBox->setItemText(1, QCoreApplication::translate("MainWindow", "Priority FIFO", nullptr));
+        comboBox->setItemText(2, QCoreApplication::translate("MainWindow", "Shortest job first", nullptr));
+        comboBox->setItemText(3, QCoreApplication::translate("MainWindow", "Round robin", nullptr));
+        comboBox->setItemText(4, QCoreApplication::translate("MainWindow", "LIFO", nullptr));
+        comboBox->setItemText(5, QCoreApplication::translate("MainWindow", "Random", nullptr));
+        comboBox->setItemText(6, QCoreApplication::translate("MainWindow", "FBn", nullptr));
+
+        StartStopBtn->setText(QCoreApplication::translate("MainWindow", "Start", nullptr));
     } // retranslateUi
 
 };

@@ -5,6 +5,7 @@
 #include <QTimer>
 #include "queuesystemdraw.h"
 #include "scheduler.h"
+#include "experiment.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -23,13 +24,16 @@ public slots:
 
 private slots:
     void on_CreateTaskBtn_clicked();
+    void on_StartStopBtn_clicked();
+    void on_comboBox_currentIndexChanged(const QString &arg1);
 
 private:
     Ui::MainWindow *ui;
-    Scheduler* scheduler;
+    //Scheduler* scheduler;
+    bool simRunning;
     QueueSystemDraw* qsd;
     QTimer* drawTimer;
-
+    Experiment* experiment;
     void initSim();
     void generateRandomTask();
 };

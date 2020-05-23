@@ -20,10 +20,13 @@ public:
     QSize minimumSizeHint() const;
     void paintEvent(QPaintEvent* event);
 
-    void AddQueue(QString name, QPoint position, QSize step);
+    void AddQueue(QString name, QPointF position, QSize step, bool inverse = false);
+    void SetQueuePosition(QString name, QPointF position);
+    QPointF GetQueuePosition(QString name);
     void AddTask(const Task* source, QString queue);
     void UpdateTask(const Task* source);
     void MoveTask(const Task* source, QString queue);
+    void Clear();
 
 public slots:
     void update();
@@ -47,13 +50,14 @@ private:
         QueueSystemDraw* parent;
     public:
         QPointF position;
+        bool horizontal;
         QSize size;
         float progress;
         Task::Priority priority;
         QString text;
 
         TaskDraw();
-        TaskDraw(QueueSystemDraw* parent, QPointF position, Task::Priority priority);
+        TaskDraw(QueueSystemDraw* parent, QPointF position, Task::Priority priority, int cost, bool horizontal);
         void Draw(QPainter* painter);
     };
 
@@ -66,9 +70,10 @@ private:
         QString name;
         QPointF position;
         QSize step;
+        bool inverse;
 
         QueueDraw();
-        QueueDraw(QueueSystemDraw* parent, QString name, QPointF position, QSize step);
+        QueueDraw(QueueSystemDraw* parent, QString name, QPointF position, QSize step, bool inverse);
         void AddTask(TaskDraw* task);
         bool RemoveTask(TaskDraw* task);
         void Draw(QPainter* painter);
