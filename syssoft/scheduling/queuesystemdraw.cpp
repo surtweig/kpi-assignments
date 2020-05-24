@@ -1,11 +1,20 @@
 #include "queuesystemdraw.h"
 
+#define MAKE_QPOINTF_TRIANGLE(poly, x1, x2, basey, height) \
+    poly[0] = QPointF(x1, basey); \
+    poly[1] = QPointF(x2, basey); \
+    poly[2] = QPointF((x1+x2)*0.5, basey-height);
+
 QueueSystemDraw::QueueSystemDraw(QWidget *parent) : QWidget(parent)
 {
     taskBackground = QBrush(QColor(200, 200, 255));
     taskProgressBackground = QBrush(QColor(20, 200, 50));
+    prioLowBg = QBrush(QColor(50, 50, 200));
+    prioHighBg = QBrush(QColor(200, 100, 0));
     taskPositionSpringFactor = 0.9;
     fillBackground = QBrush(QColor(Qt::white));
+    defaultPen = QPen();
+    noPen = QPen(Qt::PenStyle::NoPen);
 }
 
 void QueueSystemDraw::paintEvent(QPaintEvent* event)
@@ -111,27 +120,64 @@ void QueueSystemDraw::TaskDraw::Draw(QPainter* painter)
     painter->drawRect(rect);
     painter->setBrush(parent->taskProgressBackground);
     QRectF progress_rect;
+    float px = position.x();
+    float py = position.y();
+    float w = size.width();
+    float h = size.height();
     if (horizontal)
     {
         progress_rect = QRectF(
-            position.x()+1,
-            position.y()+1,
-            progress * (size.width()-2),
-            size.height()-2
+            px+1,
+            py+1,
+            progress * (w-2),
+            h-2
         );
     }
     else
     {
-        int h = progress * (size.height()-2);
+        int ph = progress * (h-2);
         progress_rect = QRectF(
-            position.x()+1,
-            position.y()-1+size.height()-h,
-            size.width()-2,
-            h
+            px+1,
+            py-1+h-ph,
+            w-2,
+            ph
         );
     }
     painter->drawRect(progress_rect);
     painter->drawText(rect, text);
+
+    if (horizontal)
+    {
+    }
+    else
+    {
+        painter->setPen(parent->noPen);
+        QPointF poly[3];
+        if (priority == Task::Priority::TPLow || priority == Task::Priority::TPLowest)
+        {
+            painter->setBrush(parent->prioLowBg);
+            MAKE_QPOINTF_TRIANGLE(poly, px+4, px+w-4, py-4-w*0.5, -w*0.5)
+            painter->drawPolygon(poly, 3);
+            if (priority == Task::Priority::TPLowest)
+            {
+                MAKE_QPOINTF_TRIANGLE(poly, px+4, px+w-4, py-4-w, -w*0.5)
+                painter->drawPolygon(poly, 3);
+            }
+        }
+        else if (priority == Task::Priority::TPHigh || priority == Task::Priority::TPHighest)
+        {
+            painter->setBrush(parent->prioHighBg);
+            MAKE_QPOINTF_TRIANGLE(poly, px+4, px+w-4, py-4, w*0.5)
+            painter->drawPolygon(poly, 3);
+            if (priority == Task::Priority::TPHighest)
+            {
+                MAKE_QPOINTF_TRIANGLE(poly, px+4, px+w-4, py-4-w*0.5, w*0.5)
+                painter->drawPolygon(poly, 3);
+            }
+        }
+
+        painter->setPen(parent->defaultPen);
+    }
 }
 
 QueueSystemDraw::QueueDraw::QueueDraw()
@@ -225,6 +271,18 @@ void QueueSystemDraw::QueueDraw::Update()
         iterate = ti.hasNext();
     }
     //for (auto ti = tasks.begin(); ti != tasks.end(); ++ti)
+    int stepWSign = 0;
+    if (step.width() > 0)
+        stepWSign = 1;
+    else
+        stepWSign = -1;
+
+    int stepHSign = 0;
+    if (step.height() > 0)
+        stepHSign = 1;
+    else
+        stepHSign = -1;
+
     while (iterate)
     {
         TaskDraw* t;// = *ti;
@@ -244,10 +302,10 @@ void QueueSystemDraw::QueueDraw::Update()
         float py = t->position.y();
         t->position.setX(px*parent->taskPositionSpringFactor + tx*(1.0 - parent->taskPositionSpringFactor));
         t->position.setY(py*parent->taskPositionSpringFactor + ty*(1.0 - parent->taskPositionSpringFactor));
-        if (step.width() > 0)
-            xAccum += t->size.width();
+        if (step.width() != 0)
+            xAccum += t->size.width()*stepWSign;
         else
-            yAccum += t->size.height();
+            yAccum += t->size.height()*stepHSign;
         ++i;
     }
 }

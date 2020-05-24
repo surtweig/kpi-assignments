@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "fifoexp.h"
+#include "priorityfifoexp.h"
+#include "sjfexp.h"
 
 #define RND(Low, High) qrand() % ((High + 1) - Low) + Low
 
@@ -15,9 +17,15 @@ MainWindow::MainWindow(QWidget *parent)
     drawTimer = new QTimer(this);
     connect(drawTimer, SIGNAL(timeout()), this, SLOT(UpdateSim()));
     drawTimer->start(15);
-    simRunning = false;
 
-    experiment = new FIFOExp(qsd, 0, 0.0035, 10, 1, 100);
+    simRunning = false;
+    taskGeneratorSeed = 0;
+    taskRate = 0.0025;
+    taskCostScale = 10;
+    taskCostPareto = 1;
+    taskCostMax = 100;
+
+    experiment = new FIFOExp(qsd, taskGeneratorSeed, taskRate, taskCostScale, taskCostPareto, taskCostMax);
     experiment->setupScheduler();
     experiment->setupDraw();
 }
@@ -94,8 +102,25 @@ void MainWindow::on_StartStopBtn_clicked()
 
 void MainWindow::on_comboBox_currentIndexChanged(const QString &arg1)
 {
+    simRunning = false;
+    ui->StartStopBtn->setText("Start");
+    qsd->Clear();
+
+    if (experiment)
+        delete experiment;
+
     if (arg1 == "FIFO")
     {
-
+        experiment = new FIFOExp(qsd, taskGeneratorSeed, taskRate, taskCostScale, taskCostPareto, taskCostMax);
     }
+    else if (arg1 == "Priority FIFO")
+    {
+        experiment = new PriorityFIFOExp(qsd, taskGeneratorSeed, taskRate, taskCostScale, taskCostPareto, taskCostMax);
+    }
+    else if (arg1 == "Shortest job first")
+    {
+        experiment = new SJFExp(qsd, taskGeneratorSeed, taskRate, taskCostScale, taskCostPareto, taskCostMax);
+    }
+    experiment->setupScheduler();
+    experiment->setupDraw();
 }

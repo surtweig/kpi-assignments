@@ -13,8 +13,8 @@
 class Experiment
 {
 private:
-    const float NormalPriorityProb = 0.682;
-    const float LowOrHighPriorityProb = 0.272;
+    const float NormalPriorityProb = 0.5;
+    const float LowOrHighPriorityProb = 0.4;
 
     QMap<quint32, quint64> taskStartTimestamp;
     QMap<quint32, quint64> taskFinishTimestamp;

@@ -25,11 +25,12 @@ protected:
     QLinkedList<Task*>* cpuQueue;
 
     bool moveTask(Task* task, QString qFrom, QString qTo);
+    virtual void updateCPUQueue();
 
 public:
     Scheduler(IQueueSystemListener* listener);
 
-    virtual void AcceptTask(Task);
+    virtual void AcceptTask(Task&);
     virtual void Tick();
     int GetQueueSize(QString queue);
 

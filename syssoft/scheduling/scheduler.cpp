@@ -30,11 +30,24 @@ bool Scheduler::moveTask(Task* task, QString qFrom, QString qTo)
     return false;
 }
 
-void Scheduler::AcceptTask(Task newTask)
+void Scheduler::AcceptTask(Task& newTask)
 {
     tasks.push_back(newTask);
     incomingQueue->push_back(&tasks.last());
     listener->AddTask(&tasks.last(), IncomingQueueName);
+}
+
+void Scheduler::updateCPUQueue()
+{
+    QMutableLinkedListIterator<Task*> ti(*cpuQueue);
+    while (ti.hasNext())
+    {
+        Task* t = ti.next();
+        t->Tick();
+        listener->UpdateTask(t);
+        if (t->Complete())
+            moveTask(t, CPUQueueName, CompleteQueueName);
+    }
 }
 
 void Scheduler::Tick()
@@ -44,17 +57,7 @@ void Scheduler::Tick()
         moveTask(incomingQueue->first(), IncomingQueueName, CPUQueueName);
     }
 
-    QMutableLinkedListIterator<Task*> ti(*cpuQueue);
-    //for (auto ti = cpuQueue->begin(); ti != cpuQueue->end(); ++ti)
-    while (ti.hasNext())
-    {
-        Task* t = ti.next();
-        t->Tick();
-        listener->UpdateTask(t);
-        if (t->Complete())
-            moveTask(t, CPUQueueName, CompleteQueueName);
-    }
-
+    updateCPUQueue();
 }
 
 int Scheduler::GetQueueSize(QString queue)

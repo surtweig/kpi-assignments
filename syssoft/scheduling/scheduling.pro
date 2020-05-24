@@ -21,8 +21,12 @@ SOURCES += \
     iqueuesystemlistener.cpp \
     main.cpp \
     mainwindow.cpp \
+    priorityfifoexp.cpp \
+    priorityfifoscheduler.cpp \
     queuesystemdraw.cpp \
     scheduler.cpp \
+    sjfexp.cpp \
+    sjfscheduler.cpp \
     task.cpp
 
 HEADERS += \
@@ -30,8 +34,12 @@ HEADERS += \
     fifoexp.h \
     iqueuesystemlistener.h \
     mainwindow.h \
+    priorityfifoexp.h \
+    priorityfifoscheduler.h \
     queuesystemdraw.h \
     scheduler.h \
+    sjfexp.h \
+    sjfscheduler.h \
     task.h
 
 FORMS += \

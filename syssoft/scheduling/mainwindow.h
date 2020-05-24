@@ -34,6 +34,12 @@ private:
     QueueSystemDraw* qsd;
     QTimer* drawTimer;
     Experiment* experiment;
+    quint32 taskGeneratorSeed;
+    float taskRate;
+    float taskCostScale;
+    float taskCostPareto;
+    quint32 taskCostMax;
+
     void initSim();
     void generateRandomTask();
 };

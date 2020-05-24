@@ -37,17 +37,17 @@ private:
     QBrush fillBackground;
     QBrush taskBackground;
     QBrush taskProgressBackground;
-    QBrush prioLowestBg;
     QBrush prioLowBg;
-    QBrush prioNormalBg;
     QBrush prioHighBg;
-    QBrush prioHighestBg;
+    QPen defaultPen;
+    QPen noPen;
     float taskPositionSpringFactor;
 
     class TaskDraw
     {
     private:
         QueueSystemDraw* parent;
+        inline static QPointF prioTrianglePoly[3];
     public:
         QPointF position;
         bool horizontal;
