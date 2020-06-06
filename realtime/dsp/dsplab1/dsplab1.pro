@@ -16,13 +16,20 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    correlationgenerator.cpp \
+    discretesignal.cpp \
     main.cpp \
     mainwindow.cpp \
-    plotdraw.cpp
+    plotdraw.cpp \
+    sineseriesgenerator.cpp
 
 HEADERS += \
+    correlationgenerator.h \
+    discretesignal.h \
+    isignalgenerator.h \
     mainwindow.h \
-    plotdraw.h
+    plotdraw.h \
+    sineseriesgenerator.h
 
 FORMS += \
     mainwindow.ui
