@@ -10,6 +10,7 @@ PlotDraw::PlotDraw(QWidget *parent) : QWidget(parent)
     viewLast = 0;
     viewLow = 0;
     viewHigh = 1;
+    axisPen = QPen(QColor(128, 128, 128));
     /*
     samplesCurrentCount = 0;
     samplesMaxCount = 0;
@@ -167,6 +168,11 @@ void PlotDraw::paintEvent(QPaintEvent* event)
     QRect bgRect = QRect(0, 0, width(), height());
     painter.fillRect(bgRect, bg);
     painter.setRenderHint(QPainter::Antialiasing);
+
+    float zy = - viewLow / (viewHigh-viewLow);
+    int pzy = (1-zy)*height();
+    painter.setPen(axisPen);
+    painter.drawLine(0, pzy, width(), pzy);
 
     for (int i = 0; i < items.size(); ++i)
     {

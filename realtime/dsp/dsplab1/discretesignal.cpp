@@ -1,4 +1,5 @@
 #include "discretesignal.h"
+#include "math.h"
 
 DiscreteSignal::DiscreteSignal(size_t size)
 {
@@ -106,4 +107,31 @@ void DiscreteSignal::Autocorrelation(DiscreteSignal& signal, DiscreteSignal& ac)
         }
         ac.SetSample(i, c);
     }
+}
+
+void DiscreteSignal::DFT(DiscreteSignal& signal, DiscreteSignal& dftAmp, DiscreteSignal& dftPhase)
+{
+    size_t N = signal.Size();
+    assert(dftAmp.Size() == N);
+    assert(dftPhase.Size() == N);
+
+    for (size_t i = 0; i < N; ++i)
+    {
+        double dftRe = 0;
+        double dftIm = 0;
+        for (size_t j = 0; j < N; ++j)
+        {
+            double x = signal.GetSample(j);
+            double arg = i * j * M_2_PI / N;
+            dftRe += x * cos(arg);
+            dftIm -= x * sin(arg);
+        }
+        dftAmp.SetSample(i, hypot(dftRe, dftIm));
+        dftPhase.SetSample(i, atan2(dftIm, dftRe));
+    }
+}
+
+void DiscreteSignal::FFT(DiscreteSignal& signal, DiscreteSignal& dftAmp, DiscreteSignal& dftPhase)
+{
+
 }

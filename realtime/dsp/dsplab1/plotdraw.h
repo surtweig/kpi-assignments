@@ -81,6 +81,7 @@ private:
     */
     QList<SignalItem> items;
     QBrush bg;
+    QPen axisPen;
     quint32 viewFirst;
     quint32 viewLast;
     float viewLow;
