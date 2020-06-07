@@ -114,6 +114,7 @@ void MainWindow::generate(quint32 harmonicsNumber, quint32 samplesCount, double 
     gen.fill(*mainSignal, 0, deltaTime);
     DiscreteSignal::Autocorrelation(*mainSignal, *mainAutocorrelation);
     DiscreteSignal::DFT(*mainSignal, *mainDFT, *mainDFTPhase);
+    DiscreteSignal::FFT(*mainSignal, *mainFFT, *mainFFTPhase);
 
     plotDraw->SetSignalStyle(0,
                              isFourierView() ? PlotDraw::SignalDrawType::Invisible :
@@ -151,7 +152,10 @@ void MainWindow::generate(quint32 harmonicsNumber, quint32 samplesCount, double 
     double acMin = mainAutocorrelation->Min();
     double dftMax = mainDFT->Max();
     double dftMin = mainDFT->Min();
+    double fftMax = mainFFT->Max();
+    double fftMin = mainFFT->Min();
 
+    plotDraw->SetSignalTransform(4, 0, mainMax / fftMax);
     plotDraw->SetSignalTransform(2, 0, mainMax / dftMax);
     plotDraw->SetSignalTransform(1, 0, mainMax / acMax);
     plotDraw->SetView(0, samplesCount-1, mainMin - 0.1, mainMax + 0.1);
