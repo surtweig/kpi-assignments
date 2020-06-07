@@ -209,10 +209,18 @@ QVector<complex<double>> DiscreteSignal::fft2(DiscreteSignal& signal, size_t cou
         for (size_t i = 0; i < halfcount; ++i)
         {
             complex<double> t = t1[i];
-            complex<double> twiddle = polar<double>(1, -(double)i*M_2_PI/(double)count) * t2[i];
+            //complex<double> twiddle = polar<double>(1, -(double)i*M_2_PI/(double)count) * t2[i];
+            complex<double> twiddle = exp(std::complex<double>(0, -2 * M_PI * i / count)) * t2[i];
             transform[i] = t + twiddle;
             transform[i+halfcount] = t - twiddle;
         }
+        /*
+        for (int k = 0; k < N / 2; k++) {
+            std::complex<double> t = exp(std::complex<double>(0, -2 * M_PI * k / N)) * odd[k];
+            x[k] = even[k] + t;
+            x[N / 2 + k] = even[k] - t;
+        }
+        */
     }
     return transform;
 }
@@ -279,14 +287,15 @@ void DiscreteSignal::FFT(DiscreteSignal& signal, DiscreteSignal& dftAmp, Discret
 */
 
 
-    //QVector<complex<double>> transform = fft2(signal);
-    complex<double>* transform = (complex<double>*)malloc(signal.Size()*sizeof(complex<double>));
-    double* sig = signal.samples.data();
-    fft(sig, transform, signal.Size());
+    QVector<complex<double>> transform = fft2(signal);
+
+    //complex<double>* transform = (complex<double>*)malloc(signal.Size()*sizeof(complex<double>));
+    //double* sig = signal.samples.data();
+    //fft(sig, transform, signal.Size());
     for (size_t i = 0; i < signal.Size(); ++i)
     {
         dftAmp.SetSample(i, abs<double>(transform[i]));
         dftPhase.SetSample(i, arg<double>(transform[i]));
     }
-    free(transform);
+    //free(transform);
 }
