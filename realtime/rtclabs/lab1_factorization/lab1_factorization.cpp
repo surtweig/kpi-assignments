@@ -16,6 +16,7 @@ uint32_t FermatFactor(uint32_t n)
         b2 = a * a - n;
         sqrtb2 = sqrt(b2);
     }
+    //std::cout << " Fermat " << n << " = " << (uint32_t)(a - sqrtb2) << "\n";
     return (uint32_t)(a - sqrtb2);
 }
 
@@ -26,6 +27,12 @@ uint32_t GetNextFactor(uint32_t n)
     if (n % 2 == 0)
         return 2;
     uint32_t ff = FermatFactor(n);
+    uint32_t nextff = FermatFactor(ff);
+    while (nextff != 1)
+    {
+        ff = nextff;
+        nextff = FermatFactor(nextff);
+    }
     if (ff == 1)
         return n;
     else
