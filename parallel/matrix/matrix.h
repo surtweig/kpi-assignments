@@ -8,6 +8,7 @@
 #include <limits>
 #include <assert.h>
 #include <iostream>
+#include <random>
 
 using namespace std;
 
@@ -174,15 +175,18 @@ public:
         return x;
     }
 
-    void print(ostream& cout) const
+    void print(ostream& cout, string lineStart = "", string lineEnd = "") const
     {
         for (size_t i = 0; i < _m; ++i)
         {
+            cout << lineStart;
             for (size_t j = 0; j < _n; ++j)
             {
-                cout << setprecision(3) << elements[j][i] << "\t";
+                cout << fixed << elements[j][i];
+                if (j < _n-1)
+                    cout << "  ";
             }
-            cout << "\n";
+            cout << lineEnd << "\n";
         }
         cout << "\n";
     }
@@ -210,12 +214,18 @@ public:
         return result;
     }
 
+    float realRand(const float & min, const float & max) {
+        static std::mt19937 generator;
+        std::uniform_real_distribution<float> distribution(min,max);
+        return distribution(generator);
+    }
+
     static matrix* random(size_t m, size_t n, float min, float max)
     {
         matrix* result = new matrix(m, n);
         for (size_t i = 0; i < result->m(); ++i)
             for (size_t j = 0; j < result->n(); ++j)
-                result->set(i, j, min + (max-min)*float(rand())/float(RAND_MAX));
+                result->set(i, j, result->realRand(min, max));
         return result;
     }
 
