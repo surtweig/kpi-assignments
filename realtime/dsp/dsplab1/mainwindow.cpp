@@ -10,7 +10,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
+    perfTestDialog = new PerfTestDialog(20, this);
     plotDraw = new PlotDraw(ui->DrawContainerWidget);
     plotDraw->SetBackground(QColor(255, 255, 255));
     /*
@@ -165,6 +165,7 @@ void MainWindow::generate(quint32 harmonicsNumber, quint32 samplesCount, double 
 
 MainWindow::~MainWindow()
 {
+    delete perfTestDialog;
     delete plotDraw;
     delete ui;
 }
@@ -250,4 +251,10 @@ void MainWindow::on_FFTPhaseCheckbox_stateChanged(int arg1)
                              colorSignal, 1);
 
     plotDraw->repaint();
+}
+
+void MainWindow::on_perfTestDialogShowButton_clicked()
+{
+
+    perfTestDialog->show();
 }

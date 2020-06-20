@@ -93,8 +93,28 @@ double DiscreteSignal::GetSample(size_t index)
     return samples[index];
 }
 
+void DiscreteSignal::Correlation(DiscreteSignal& signal1, DiscreteSignal& signal2, DiscreteSignal& ac)
+{
+    assert(signal1.Size() == signal2.Size());
+
+    double avg1 = signal1.Average();
+    double avg2 = signal2.Average();
+
+    for (size_t i = 0; i < ac.Size(); ++i)
+    {
+        double c = 0;
+        for (size_t j = 0; j < signal1.Size(); ++j)
+        {
+            if (j >= i)
+                c += (signal1.GetSample(j) - avg1)*(signal2.GetSample(j-i) - avg2);
+        }
+        ac.SetSample(i, c);
+    }
+}
+
 void DiscreteSignal::Autocorrelation(DiscreteSignal& signal, DiscreteSignal& ac)
 {
+    /*
     double avg = signal.Average();
 
     for (size_t i = 0; i < ac.Size(); ++i)
@@ -107,6 +127,8 @@ void DiscreteSignal::Autocorrelation(DiscreteSignal& signal, DiscreteSignal& ac)
         }
         ac.SetSample(i, c);
     }
+    */
+    Correlation(signal, signal, ac);
 }
 
 void DiscreteSignal::DFT(DiscreteSignal& signal, DiscreteSignal& dftAmp, DiscreteSignal& dftPhase)
@@ -214,13 +236,6 @@ QVector<complex<double>> DiscreteSignal::fft2(DiscreteSignal& signal, size_t cou
             transform[i] = t + twiddle;
             transform[i+halfcount] = t - twiddle;
         }
-        /*
-        for (int k = 0; k < N / 2; k++) {
-            std::complex<double> t = exp(std::complex<double>(0, -2 * M_PI * k / N)) * odd[k];
-            x[k] = even[k] + t;
-            x[N / 2 + k] = even[k] - t;
-        }
-        */
     }
     return transform;
 }

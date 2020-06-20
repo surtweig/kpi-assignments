@@ -20,6 +20,7 @@ SOURCES += \
     discretesignal.cpp \
     main.cpp \
     mainwindow.cpp \
+    perftestdialog.cpp \
     plotdraw.cpp \
     sineseriesgenerator.cpp
 
@@ -28,11 +29,13 @@ HEADERS += \
     discretesignal.h \
     isignalgenerator.h \
     mainwindow.h \
+    perftestdialog.h \
     plotdraw.h \
     sineseriesgenerator.h
 
 FORMS += \
-    mainwindow.ui
+    mainwindow.ui \
+    perftestdialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

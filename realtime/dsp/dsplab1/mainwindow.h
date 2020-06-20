@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "perftestdialog.h"
 #include "plotdraw.h"
 
 QT_BEGIN_NAMESPACE
@@ -24,8 +25,11 @@ private slots:
     void on_DFTPhaseCheckbox_stateChanged(int arg1);
     void on_FFTPhaseCheckbox_stateChanged(int arg1);
 
+    void on_perfTestDialogShowButton_clicked();
+
 private:
     Ui::MainWindow *ui;
+    PerfTestDialog* perfTestDialog;
     PlotDraw* plotDraw;
     DiscreteSignal* mainSignal;
     DiscreteSignal* mainAutocorrelation;

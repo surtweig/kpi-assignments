@@ -30,6 +30,7 @@ public:
     double GetSample(size_t index);
 
     static void Autocorrelation(DiscreteSignal& signal, DiscreteSignal& ac);
+    static void Correlation(DiscreteSignal& signal1, DiscreteSignal& signal2, DiscreteSignal& ac);
     static void DFT(DiscreteSignal& signal, DiscreteSignal& dftAmp, DiscreteSignal& dftPhase);
     static void FFT(DiscreteSignal& signal, DiscreteSignal& dftAmp, DiscreteSignal& dftPhase);
 };
