@@ -22,8 +22,11 @@ class StreamEncoder:
     def __init__(self, keystreamGenerator):
         self.keystreamGenerator = keystreamGenerator
 
-    def encodeBytes(self, c):
-        return bytes([c[i] ^ self.keystreamGenerator.getChar() for i in range(len(c))])
+    def encodeChar(self, c):
+        return c ^ self.keystreamGenerator.getChar()
+
+    def encodeBytes(self, b):
+        return bytes([self.encodeChar(b[i]) for i in range(len(b))])
    
     def encodeFile(self, fileNameIn, fileNameOut):
         fileIn = open(fileNameIn, 'rb')
@@ -40,3 +43,11 @@ class StreamEncoder:
 
 
 
+def readFileBytes(fileName):
+    f = open(fileName, "rb")
+    buffer = []
+    c = f.read(1)
+    while c:
+        buffer.append(int(c[0]))
+        c = f.read(1)
+    return bytes(buffer)

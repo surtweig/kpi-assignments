@@ -1,16 +1,7 @@
 #%%
 # attack_test
-from stream_cipher import KeystreamGenerator, StreamEncoder
+from stream_cipher import KeystreamGenerator, StreamEncoder, readFileBytes
 from attack import BitFlippingAttack
-
-def readFileBytes(fileName):
-    f = open(fileName, "rb")
-    buffer = []
-    c = f.read(1)
-    while c:
-        buffer.append(int(c[0]))
-        c = f.read(1)
-    return bytes(buffer)
 
 originalMessage = readFileBytes("original.txt")
 adversaryMessage = readFileBytes("original2.txt")
