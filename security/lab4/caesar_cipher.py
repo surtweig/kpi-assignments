@@ -7,7 +7,10 @@ class CaesarEncoder(StreamEncoder):
         self.alphabetMap = {alphabet[i]:i for i in range(len(alphabet))}
 
     def encodeChar(self, c):
-        return self.alphabet[(self.alphabetMap[c] + self.shift + len(self.alphabet)) % len(self.alphabet)]
+        if c in self.alphabetMap:
+            return self.alphabet[(self.alphabetMap[c] + self.shift + len(self.alphabet)) % len(self.alphabet)]
+        else:
+            print("'{0}' is not in the alphabet".format(chr(c)))
 
     def createDecoder(self):
         return CaesarEncoder(-self.shift, self.alphabet)        

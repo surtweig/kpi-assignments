@@ -15,7 +15,21 @@ class KeystreamGenerator:
     def getString(self, size):
         return [self.getChar() for i in range(size)]
 
+class LCGKeystreamGenerator(KeystreamGenerator):
 
+    def __init__(self, start):
+        self.m = 2<<32
+        self.a = 1664525
+        self.c = 1013904223
+        self.t = start
+        self.start = start
+
+    def reset(self):
+        self.t = self.start
+
+    def getChar(self):
+        self.t = (self.a * self.t + self.c) % self.m
+        return self.t % 256
 
 class StreamEncoder:
 

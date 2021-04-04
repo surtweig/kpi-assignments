@@ -50,8 +50,11 @@ def hammingDecode(code):
     # error correction
     fullChecksum = hammingCheck(code)
     if fullChecksum != 0:
-        print("decode correction {0}".format(fullChecksum-1))
-        code[fullChecksum-1] = 1 - code[fullChecksum-1]
+        if fullChecksum-1 < len(code):
+            print("decode correction {0}".format(fullChecksum-1))
+            code[fullChecksum-1] = 1 - code[fullChecksum-1]
+        else:
+            print("decode error: error position {0} is out of range ({1})".format(fullChecksum-1, len(code)))
 
     payload = []
     pi = 0

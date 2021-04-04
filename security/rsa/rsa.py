@@ -29,8 +29,7 @@ class RSAEncoder:
     def __init__(self):
         self.keyD = None
         self.keyE = None
-        self.blockSize = 0
-        
+        self.blockSize = 0       
 
     def rsaGenerateKeypair(self, seed = None):
         from random import Random
@@ -92,8 +91,9 @@ class RSAEncoder:
         for i in range(b):
             c = (c * a) % m
         return c
-
-
+    
+    def rsaEncodeNumber(self, key, x):
+        return RSAEncoder.modPow(x, key, self.n)
 
     def n2b(n, base):
         b = []
@@ -102,10 +102,7 @@ class RSAEncoder:
             sh = sh << base
             b.append(n - sh)
             n = sh >> base
-        return b        
-
-    def rsaEncodeNumber(self, key, x):
-        return RSAEncoder.modPow(x, key, self.n)
+        return b  
 
     def resizeBytes(data, n):
         sequence = []
